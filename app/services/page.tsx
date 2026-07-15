@@ -7,6 +7,7 @@ export default function ServicesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [activeStep, setActiveStep] = useState<number | null>(0);
+  const [dbServices, setDbServices] = useState<any[]>([]);
 
   const categories = ['All', 'Clinical Care', 'Logistics', 'Governance'];
 
@@ -93,6 +94,38 @@ export default function ServicesPage() {
   ];
 
   useEffect(() => {
+    async function loadServices() {
+      try {
+        const res = await fetch('/api/admin/content?type=Service');
+        if (res.ok) {
+          const data = await res.json();
+          const publicServices = data.filter((s: any) => s.visibility === 'Public');
+          setDbServices(publicServices);
+        }
+      } catch (e) {
+        console.error("Failed to fetch services", e);
+      }
+    }
+    loadServices();
+  }, []);
+
+  const displayServices = dbServices.length > 0
+    ? [
+        ...dbServices.map(s => ({
+          id: s.id,
+          title: s.title,
+          category: s.category,
+          icon: s.category === 'Clinical Care' ? 'medical_services' : s.category === 'Logistics' ? 'flight_takeoff' : 'verified_user',
+          iconBg: s.category === 'Clinical Care' ? 'bg-primary-fixed' : s.category === 'Logistics' ? 'bg-tertiary-fixed' : 'bg-outline-variant',
+          iconColor: s.category === 'Clinical Care' ? 'text-primary' : s.category === 'Logistics' ? 'text-tertiary' : 'text-on-surface-variant',
+          description: s.description,
+          features: s.tags ? s.tags.split(',') : ['Personalized Care', 'Global Coordination']
+        })),
+        ...services
+      ]
+    : services;
+
+  useEffect(() => {
     // Scroll reveal animation observer
     const observerOptions = {
       threshold: 0.05,
@@ -116,7 +149,7 @@ export default function ServicesPage() {
     window.dispatchEvent(new CustomEvent('open-consultation'));
   };
 
-  const filteredServices = services.filter((s) => {
+  const filteredServices = displayServices.filter((s) => {
     const matchesSearch = s.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           s.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'All' || s.category === selectedCategory;
@@ -196,7 +229,7 @@ export default function ServicesPage() {
                     {service.description}
                   </p>
                   <ul className="space-y-2 mb-8">
-                    {service.features.map((feat, fIdx) => (
+                    {service.features.map((feat: string, fIdx: number) => (
                       <li key={fIdx} className="flex items-center gap-2.5 text-xs text-on-surface-variant">
                         <span className="material-symbols-outlined text-primary text-base" style={{ fontVariationSettings: "'FILL' 1" }}>
                           check_circle

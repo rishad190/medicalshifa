@@ -18,6 +18,7 @@ export interface BlogPost {
 export default function BlogListingPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [dbPosts, setDbPosts] = useState<any[]>([]);
 
   const categories = ['All', 'Medical Innovation', 'Patient Guide', 'Global Network'];
 
@@ -65,6 +66,42 @@ export default function BlogListingPage() {
   ];
 
   useEffect(() => {
+    async function loadPosts() {
+      try {
+        const res = await fetch('/api/admin/content?type=Blog Post');
+        if (res.ok) {
+          const data = await res.json();
+          const publicPosts = data.filter((p: any) => p.visibility === 'Public');
+          setDbPosts(publicPosts);
+        }
+      } catch (e) {
+        console.error("Failed to fetch posts", e);
+      }
+    }
+    loadPosts();
+  }, []);
+
+  const displayPosts = dbPosts.length > 0
+    ? [
+        ...dbPosts.map(p => ({
+          slug: p.slug,
+          title: p.title,
+          category: p.category,
+          date: new Date(p.createdAt).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          }),
+          author: p.author,
+          authorImage: p.authorImage,
+          excerpt: p.excerpt,
+          image: p.image || 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=800&q=80'
+        })),
+        ...posts
+      ]
+    : posts;
+
+  useEffect(() => {
     const observerOptions = {
       threshold: 0.05,
       rootMargin: '0px 0px -40px 0px'
@@ -83,7 +120,7 @@ export default function BlogListingPage() {
     return () => revealObserver.disconnect();
   }, []);
 
-  const filteredPosts = posts.filter((p) => {
+  const filteredPosts = displayPosts.filter((p) => {
     const matchesSearch = p.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           p.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           p.author.toLowerCase().includes(searchQuery.toLowerCase());

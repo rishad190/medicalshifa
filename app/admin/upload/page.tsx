@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import Image from 'next/image';
+import { signOut } from 'next-auth/react';
 
 export default function AdminUploadPage() {
   const [contentType, setContentType] = useState<'Service' | 'Blog Post' | 'Partner'>('Service');
@@ -21,6 +22,7 @@ export default function AdminUploadPage() {
 
   // Publish Status
   const [publishStatus, setPublishStatus] = useState<'idle' | 'publishing' | 'published'>('idle');
+  const [error, setError] = useState<string | null>(null);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -47,9 +49,33 @@ export default function AdminUploadPage() {
     setTags(tags.filter((t) => t !== tagToRemove));
   };
 
-  const handlePublish = () => {
+  const handlePublish = async () => {
     setPublishStatus('publishing');
-    setTimeout(() => {
+    setError(null);
+
+    try {
+      const res = await fetch('/api/admin/content', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contentType,
+          title,
+          category,
+          duration,
+          description,
+          image: imagePreview,
+          tags,
+          visibility,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to publish content');
+      }
+
       setPublishStatus('published');
       setTimeout(() => {
         setPublishStatus('idle');
@@ -58,8 +84,12 @@ export default function AdminUploadPage() {
         setDuration('');
         setDescription('');
         setImagePreview(null);
+        setTags(['Cardiology', 'Wellness']);
       }, 2000);
-    }, 1500);
+    } catch (err: any) {
+      setPublishStatus('idle');
+      setError(err.message || 'An error occurred while publishing.');
+    }
   };
 
   return (
@@ -100,6 +130,13 @@ export default function AdminUploadPage() {
             <span className="material-symbols-outlined text-lg">settings</span>
             <span>Settings</span>
           </button>
+          <button 
+            onClick={() => signOut({ callbackUrl: '/admin/login' })}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-error hover:bg-error/5 transition-all text-sm font-bold cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-lg">logout</span>
+            <span>Sign Out</span>
+          </button>
         </nav>
       </aside>
 
@@ -137,6 +174,13 @@ export default function AdminUploadPage() {
           <div className="bg-primary/10 border border-primary/20 p-4 rounded-xl text-primary font-bold text-sm mb-8 flex items-center gap-3 animate-pulse">
             <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
             <span>Content successfully published to Shifa global registry!</span>
+          </div>
+        )}
+
+        {error && (
+          <div className="bg-error-container/10 border border-error/20 p-4 rounded-xl text-error font-bold text-sm mb-8 flex items-center gap-3">
+            <span className="material-symbols-outlined text-xl">error</span>
+            <span>{error}</span>
           </div>
         )}
 

@@ -7,7 +7,24 @@ import Link from 'next/link';
 export default function Home() {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const [activeTestimonial, setActiveTestimonial] = useState(0);
+  const [dbPartners, setDbPartners] = useState<any[]>([]);
   const sliderRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    async function loadPartners() {
+      try {
+        const res = await fetch('/api/admin/content?type=Partner');
+        if (res.ok) {
+          const data = await res.json();
+          const publicPartners = data.filter((p: any) => p.visibility === 'Public');
+          setDbPartners(publicPartners);
+        }
+      } catch (e) {
+        console.error("Failed to fetch partners", e);
+      }
+    }
+    loadPartners();
+  }, []);
 
   const testimonials = [
     {
@@ -385,11 +402,25 @@ export default function Home() {
             Collaborating with the World&apos;s Finest Institutions
           </p>
           <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 lg:gap-24 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
-            <span className="font-headline-md text-headline-md font-bold text-on-surface">Mayo Clinic</span>
-            <span className="font-headline-md text-headline-md font-bold text-on-surface">Cleveland Clinic</span>
-            <span className="font-headline-md text-headline-md font-bold text-on-surface">Johns Hopkins</span>
-            <span className="font-headline-md text-headline-md font-bold text-on-surface">Guy&apos;s Hospital</span>
-            <span className="font-headline-md text-headline-md font-bold text-on-surface">Charité Berlin</span>
+            {dbPartners.length > 0 ? (
+              dbPartners.map(p => (
+                <div key={p.id} className="flex items-center gap-3">
+                  {p.image ? (
+                    <img src={p.image} alt={p.name} className="h-10 object-contain" />
+                  ) : (
+                    <span className="font-headline-md text-headline-md font-bold text-on-surface">{p.name}</span>
+                  )}
+                </div>
+              ))
+            ) : (
+              <>
+                <span className="font-headline-md text-headline-md font-bold text-on-surface">Mayo Clinic</span>
+                <span className="font-headline-md text-headline-md font-bold text-on-surface">Cleveland Clinic</span>
+                <span className="font-headline-md text-headline-md font-bold text-on-surface">Johns Hopkins</span>
+                <span className="font-headline-md text-headline-md font-bold text-on-surface">Guy&apos;s Hospital</span>
+                <span className="font-headline-md text-headline-md font-bold text-on-surface">Charité Berlin</span>
+              </>
+            )}
           </div>
         </div>
       </section>

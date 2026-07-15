@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { createAppointment } from '../app/firebaseClient';
 
 export default function ConsultationModal() {
   const [isOpen, setIsOpen] = useState(false);
@@ -25,12 +26,38 @@ export default function ConsultationModal() {
     };
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus('loading');
+
+    // Attempt to save to Firestore via client helper if available
+    try {
+      if (typeof createAppointment === 'function') {
+        await createAppointment({
+          ...formData,
+        });
+
+        setStatus('success');
+
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          date: '',
+          service: 'Second Opinion',
+          notes: '',
+        });
+        return;
+      }
+    } catch (err) {
+      // If Firestore write fails, fall back to localStorage below
+      // eslint-disable-next-line no-console
+      console.warn('Firestore write failed, falling back to localStorage:', err);
+    }
+
+    // Fallback: Save appointment to localStorage (development fallback)
     setTimeout(() => {
       setStatus('success');
-      // Save appointment mock to localStorage
       const appointments = JSON.parse(localStorage.getItem('appointments') || '[]');
       const newAppointment = {
         id: Math.random().toString(36).substring(2, 9),
@@ -39,6 +66,7 @@ export default function ConsultationModal() {
         status: 'Pending',
       };
       localStorage.setItem('appointments', JSON.stringify([newAppointment, ...appointments]));
+
       // Reset form
       setFormData({
         name: '',
@@ -48,7 +76,7 @@ export default function ConsultationModal() {
         service: 'Second Opinion',
         notes: '',
       });
-    }, 1500);
+    }, 800);
   };
 
   if (!isOpen) return null;
