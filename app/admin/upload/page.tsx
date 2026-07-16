@@ -72,8 +72,11 @@ export default function AdminUploadPage() {
       });
 
       if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Failed to publish content');
+        const data: unknown = await res.json();
+        const message = typeof data === "object" && data !== null && "error" in data && typeof data.error === "string"
+          ? data.error
+          : "Failed to publish content";
+        throw new Error(message);
       }
 
       setPublishStatus('published');
@@ -86,9 +89,9 @@ export default function AdminUploadPage() {
         setImagePreview(null);
         setTags(['Cardiology', 'Wellness']);
       }, 2000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setPublishStatus('idle');
-      setError(err.message || 'An error occurred while publishing.');
+      setError(err instanceof Error ? err.message : 'An error occurred while publishing.');
     }
   };
 

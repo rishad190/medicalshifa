@@ -4,6 +4,17 @@ import { ADMIN_ROLE } from "@/auth";
 
 export const runtime = "edge";
 
+type ContentInput = {
+  contentType?: "Service" | "Blog Post" | "Partner";
+  title?: string;
+  category?: string;
+  duration?: string;
+  description?: string;
+  image?: string;
+  tags?: string[];
+  visibility?: "Draft" | "Public";
+};
+
 function slugify(text: string) {
   return text
     .toString()
@@ -86,7 +97,7 @@ export const POST = auth(async (req) => {
   }
 
   try {
-    const body = await req.json();
+    const body = (await req.json()) as ContentInput;
     const {
       contentType,
       title,

@@ -1,35 +1,30 @@
-# Architecture overview
+# Production architecture
 
-## Goals
+## Application boundary
 
-- Deliver a premium healthcare website with reusable content and strong SEO.
-- Support secure admin access for content and operations.
-- Prepare the project for Cloudflare Pages and Cloudflare D1 deployment.
+Public marketing pages are statically rendered where possible. Shared copy belongs in `lib/content.ts`, so later D1/CMS content can replace it behind a repository interface without changing the UI. Consultation submissions go through the server route and write only contact-level data to D1; medical documents should use an authenticated R2 upload workflow with short-lived signed URLs.
 
-## Stack
+## Identity and authorisation
 
-- Next.js 16 App Router
-- TypeScript
-- Tailwind CSS
-- Auth.js with Credentials provider
-- Cloudflare D1 + D1 adapter
-- Cloudflare Pages deployment
+Auth.js owns sessions; D1 owns users, account records, verification tokens, and role fields. Roles are `ADMIN`, `STAFF`, and `PATIENT`. A route or server action must check its own authorisation: Proxy is a fast redirect convenience, never the security boundary. Use an Argon2id password hash per user (with unique salt), email-verification tokens, password-reset tokens with expiry, and a database session strategy for revocation. Do not use the present demo credentials provider as a production account system until it is changed to verify the D1 user’s Argon2id hash.
 
-## Content structure
+## D1 and schema
 
-- Shared content lives in lib/content.ts.
-- Public pages consume that content for services, treatments, hospitals, doctors, FAQs, and testimonials.
-- Admin content routes can be used to manage dynamic content later.
+`db/schema.sql` is the canonical migration baseline. Apply it with `wrangler d1 execute medical_db --remote --file=db/schema.sql` after replacing the D1 id in `wrangler.toml`. Add a migration per schema change; never edit a migration already applied in production. Encrypt or minimise sensitive data, restrict staff access by role, and set a retention policy for inquiries.
 
-## Authentication design
+## Cloudflare deployment
 
-- Credentials-based sign-in with server-side session management.
-- Passwords are verified using SHA-256 hashes stored in environment variables.
-- Admin-only routes are protected by role checks on the content API.
+Use OpenNext for Cloudflare because the application uses server routes and authentication. Set `DB`, `AUTH_SECRET`, and any mail provider secret with `wrangler secret put`; do not put them in `NEXT_PUBLIC_*` variables. Deploy preview environments to a separate D1 database. Add Cloudflare Turnstile before accepting unauthenticated forms and rate-limit the consultation endpoint (by IP and email) with Workers/Rate Limiting.
 
-## Deployment notes
+## Security release checklist
 
-1. Create a Cloudflare D1 database and populate the schema.
-2. Set Auth.js environment variables in Cloudflare Pages.
-3. Configure the wrangler.toml database binding.
-4. Build with next build and deploy through Cloudflare Pages or Wrangler.
+- HTTPS only; secure, HttpOnly, SameSite cookies and a rotated `AUTH_SECRET`.
+- CSP, HSTS, Referrer-Policy, Permissions-Policy, and X-Content-Type-Options headers.
+- Server-side Zod validation, output encoding, CSRF validation for mutations, and per-route RBAC.
+- Audit logging for staff actions; backups and tested restore procedure for D1.
+- No health records in analytics, logs, URL parameters, or initial contact forms.
+- Run dependency scanning, `npm run lint`, build, accessibility checks, and route smoke tests in CI.
+
+## Next additions
+
+Multilingual Bangla/English content, a secure patient portal, consented R2 medical-document uploads, a clinician-reviewed second-opinion workflow, online payment links, and a human-supervised multilingual chat assistant.

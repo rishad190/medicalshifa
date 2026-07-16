@@ -5,8 +5,21 @@ CREATE TABLE IF NOT EXISTS users (
   name TEXT,
   email TEXT NOT NULL UNIQUE,
   emailVerified DATETIME,
-  image TEXT
+  image TEXT,
+  role TEXT NOT NULL DEFAULT 'PATIENT' CHECK (role IN ('ADMIN', 'STAFF', 'PATIENT')),
+  password_hash TEXT
 );
+
+CREATE TABLE IF NOT EXISTS consultation_requests (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  phone TEXT NOT NULL,
+  service TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new', 'contacted', 'closed')),
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS consultation_requests_status_created_at ON consultation_requests(status, created_at DESC);
 
 CREATE TABLE IF NOT EXISTS accounts (
   id TEXT PRIMARY KEY,
@@ -72,4 +85,3 @@ CREATE TABLE IF NOT EXISTS partners (
   visibility TEXT NOT NULL DEFAULT 'Draft',
   createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
 );
-
