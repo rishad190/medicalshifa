@@ -14,3 +14,7 @@ enabled = true
 binding = "DB"
 database_name = "db"
 database_id = "d89290dc-5ddd-4ab8-90d8-63e653b1124b"
+
+routes = [
+  { pattern = "shifaglobalcare.org", custom_domain = true }
+]
