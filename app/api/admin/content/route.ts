@@ -1,19 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { ADMIN_ROLE } from "@/auth";
+import { ADMIN_ROLE, STAFF_ROLE } from "@/auth";
+import { getDb } from "@/lib/db";
+import {
+  services,
+  blogPosts,
+  partners,
+  doctors,
+  hospitals,
+  testimonials,
+  faqs,
+} from "@/db/schema";
+import { eq, desc } from "drizzle-orm";
 
 export const runtime = "edge";
-
-type ContentInput = {
-  contentType?: "Service" | "Blog Post" | "Partner";
-  title?: string;
-  category?: string;
-  duration?: string;
-  description?: string;
-  image?: string;
-  tags?: string[];
-  visibility?: "Draft" | "Public";
-};
 
 function slugify(text: string) {
   return text
@@ -25,167 +25,265 @@ function slugify(text: string) {
     .replace(/\-\-+/g, "-");
 }
 
-function getD1Database() {
-  return (process.env as any).DB ?? (globalThis as any).DB ?? null;
-}
-
-// GET handler: Fetch content list (accessible to frontend)
+// GET handler: Fetch content lists (publicly readable or for portal viewing)
 export async function GET(req: NextRequest) {
-  const db = getD1Database();
-  if (!db) {
-    return NextResponse.json(
-      { error: "D1 database connection unavailable" },
-      { status: 500 },
-    );
-  }
-
   const url = new URL(req.url);
-  const type = url.searchParams.get("type"); // "Service" | "Blog Post" | "Partner"
+  const type = url.searchParams.get("type"); // "Service" | "Blog Post" | "Partner" | "Doctor" | "Hospital" | "Testimonial" | "FAQ"
 
   try {
+    const db = getDb();
+
     if (type === "Service") {
-      const { results } = await db
-        .prepare("SELECT * FROM services ORDER BY createdAt DESC")
-        .all();
+      const results = await db.select().from(services).orderBy(desc(services.createdAt));
       return NextResponse.json(results);
     } else if (type === "Blog Post") {
-      const { results } = await db
-        .prepare("SELECT * FROM blog_posts ORDER BY createdAt DESC")
-        .all();
+      const results = await db.select().from(blogPosts).orderBy(desc(blogPosts.createdAt));
       return NextResponse.json(results);
     } else if (type === "Partner") {
-      const { results } = await db
-        .prepare("SELECT * FROM partners ORDER BY createdAt DESC")
-        .all();
+      const results = await db.select().from(partners).orderBy(desc(partners.createdAt));
+      return NextResponse.json(results);
+    } else if (type === "Doctor") {
+      const results = await db.select().from(doctors).orderBy(desc(doctors.createdAt));
+      return NextResponse.json(results);
+    } else if (type === "Hospital") {
+      const results = await db.select().from(hospitals).orderBy(desc(hospitals.createdAt));
+      return NextResponse.json(results);
+    } else if (type === "Testimonial") {
+      const results = await db.select().from(testimonials).orderBy(desc(testimonials.createdAt));
+      return NextResponse.json(results);
+    } else if (type === "FAQ") {
+      const results = await db.select().from(faqs).orderBy(desc(faqs.createdAt));
       return NextResponse.json(results);
     } else {
-      // Fetch all
-      const services = await db.prepare("SELECT * FROM services").all();
-      const posts = await db.prepare("SELECT * FROM blog_posts").all();
-      const partners = await db.prepare("SELECT * FROM partners").all();
+      // Fetch all contents for initial dashboard sync
+      const s = await db.select().from(services);
+      const b = await db.select().from(blogPosts);
+      const p = await db.select().from(partners);
+      const d = await db.select().from(doctors);
+      const h = await db.select().from(hospitals);
+      const t = await db.select().from(testimonials);
+      const f = await db.select().from(faqs);
+
       return NextResponse.json({
-        services: services.results,
-        posts: posts.results,
-        partners: partners.results,
+        services: s,
+        blogPosts: b,
+        partners: p,
+        doctors: d,
+        hospitals: h,
+        testimonials: t,
+        faqs: f,
       });
     }
   } catch (err: any) {
     return NextResponse.json(
       { error: err.message || "Database query failed" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
 
-// POST handler: Create content (restricted to Authenticated Admins)
+// POST handler: Create / Update content (restricted to Authenticated Admins/Staff)
 export const POST = auth(async (req) => {
   if (!req.auth) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const role = (req.auth.user as any)?.role ?? "PATIENT";
-  if (role !== ADMIN_ROLE) {
+  if (role !== ADMIN_ROLE && role !== STAFF_ROLE) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const db = getD1Database();
-  if (!db) {
-    return NextResponse.json(
-      { error: "D1 database connection unavailable" },
-      { status: 500 },
-    );
-  }
-
   try {
-    const body = (await req.json()) as ContentInput;
-    const {
-      contentType,
-      title,
-      category,
-      duration,
-      description,
-      image,
-      tags,
-      visibility,
-    } = body;
+    const db = getDb();
+    const body = (await req.json()) as any;
+    const { contentType, ...data } = body;
 
-    if (!title || !contentType) {
+    if (!contentType) {
       return NextResponse.json(
-        { error: "Title and Content Type are required" },
-        { status: 400 },
+        { error: "Content Type is required" },
+        { status: 400 }
       );
     }
 
-    const tagsStr = Array.isArray(tags) ? tags.join(",") : "";
-    const status = visibility || "Draft";
+    const visibility = data.visibility || "Draft";
 
     if (contentType === "Service") {
-      const id = slugify(title);
+      if (!data.title) return NextResponse.json({ error: "Title is required" }, { status: 400 });
+      const id = slugify(data.title);
       await db
-        .prepare(
-          "INSERT OR REPLACE INTO services (id, title, category, duration, description, image, tags, visibility) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-        )
-        .bind(
+        .insert(services)
+        .values({
           id,
-          title,
-          category || "General Consultation",
-          duration || "",
-          description || "",
-          image || "",
-          tagsStr,
-          status,
-        )
-        .run();
-
+          title: data.title,
+          category: data.category || "General Consultation",
+          duration: data.duration || "",
+          description: data.description || "",
+          image: data.image || "",
+          tags: Array.isArray(data.tags) ? data.tags.join(",") : "",
+          visibility,
+        })
+        .onConflictDoUpdate({
+          target: services.id,
+          set: {
+            title: data.title,
+            category: data.category || "General Consultation",
+            duration: data.duration || "",
+            description: data.description || "",
+            image: data.image || "",
+            tags: Array.isArray(data.tags) ? data.tags.join(",") : "",
+            visibility,
+          },
+        });
       return NextResponse.json({ success: true, id });
     } else if (contentType === "Blog Post") {
-      const slug = slugify(title);
-      const excerpt = description ? description.substring(0, 150) + "..." : "";
-
+      if (!data.title) return NextResponse.json({ error: "Title is required" }, { status: 400 });
+      const slug = slugify(data.title);
+      const excerpt = data.description ? data.description.substring(0, 150) + "..." : "";
       const author = req.auth.user?.name || "Dr. Sarah Khalil";
-      const authorImage =
-        req.auth.user?.image ||
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuBzQL-tqoi4mBI4rAj-vnlNIljOiw2PZRLb5hUxqSfsI0elcXXJiqk2IJlFw8vt6tw1MLr_TCP9pZC4CMTAZ0S4wbZooZvksKcFBNLok_ndGfWUbo5eROBFoiAujUv5bRmZTqpHmgCeOFVpW53IP-rGf4Vx-fJ6c4EcBdTgGqP0a3agXDmCZBzRI-tvjZOtHqCVmmDEg2AOtZCUUamX55TFgrGF0f52avx1tlTxH3USRVfZXv04r8E0IBx0dOAgUFjOZ7OSmIwJTFg";
+      const authorImage = req.auth.user?.image || "";
 
       await db
-        .prepare(
-          "INSERT OR REPLACE INTO blog_posts (slug, title, category, excerpt, content, image, author, authorImage, tags, visibility) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        )
-        .bind(
+        .insert(blogPosts)
+        .values({
           slug,
-          title,
-          category || "Medical Innovation",
+          title: data.title,
+          category: data.category || "Medical Tourism",
           excerpt,
-          description || "",
-          image || "",
+          content: data.description || "",
+          image: data.image || "",
           author,
           authorImage,
-          tagsStr,
-          status,
-        )
-        .run();
-
+          tags: Array.isArray(data.tags) ? data.tags.join(",") : "",
+          visibility,
+        })
+        .onConflictDoUpdate({
+          target: blogPosts.slug,
+          set: {
+            title: data.title,
+            category: data.category || "Medical Tourism",
+            excerpt,
+            content: data.description || "",
+            image: data.image || "",
+            tags: Array.isArray(data.tags) ? data.tags.join(",") : "",
+            visibility,
+          },
+        });
       return NextResponse.json({ success: true, slug });
     } else if (contentType === "Partner") {
-      const id = slugify(title);
+      if (!data.title) return NextResponse.json({ error: "Name/Title is required" }, { status: 400 });
+      const id = slugify(data.title);
       await db
-        .prepare(
-          "INSERT OR REPLACE INTO partners (id, name, image, visibility) VALUES (?, ?, ?, ?)",
-        )
-        .bind(id, title, image || "", status)
-        .run();
-
+        .insert(partners)
+        .values({
+          id,
+          name: data.title,
+          image: data.image || "",
+          visibility,
+        })
+        .onConflictDoUpdate({
+          target: partners.id,
+          set: {
+            name: data.title,
+            image: data.image || "",
+            visibility,
+          },
+        });
+      return NextResponse.json({ success: true, id });
+    } else if (contentType === "Doctor") {
+      if (!data.title) return NextResponse.json({ error: "Name is required" }, { status: 400 });
+      const id = slugify(data.title);
+      await db
+        .insert(doctors)
+        .values({
+          id,
+          name: data.title,
+          title: data.jobTitle || "Specialist",
+          department: data.category || "General Medicine",
+          experience: data.duration || "5 years",
+          bio: data.description || "",
+          image: data.image || "",
+          hospitalId: data.hospitalId || null,
+          visibility,
+        })
+        .onConflictDoUpdate({
+          target: doctors.id,
+          set: {
+            name: data.title,
+            title: data.jobTitle || "Specialist",
+            department: data.category || "General Medicine",
+            experience: data.duration || "5 years",
+            bio: data.description || "",
+            image: data.image || "",
+            hospitalId: data.hospitalId || null,
+            visibility,
+          },
+        });
+      return NextResponse.json({ success: true, id });
+    } else if (contentType === "Hospital") {
+      if (!data.title) return NextResponse.json({ error: "Name is required" }, { status: 400 });
+      const id = slugify(data.title);
+      await db
+        .insert(hospitals)
+        .values({
+          id,
+          name: data.title,
+          location: data.category || "India",
+          focus: data.duration || "Multi-specialty",
+          description: data.description || "",
+          image: data.image || "",
+          visibility,
+        })
+        .onConflictDoUpdate({
+          target: hospitals.id,
+          set: {
+            name: data.title,
+            location: data.category || "India",
+            focus: data.duration || "Multi-specialty",
+            description: data.description || "",
+            image: data.image || "",
+            visibility,
+          },
+        });
+      return NextResponse.json({ success: true, id });
+    } else if (contentType === "Testimonial") {
+      if (!data.title) return NextResponse.json({ error: "Name is required" }, { status: 400 });
+      const id = crypto.randomUUID();
+      await db
+        .insert(testimonials)
+        .values({
+          id,
+          name: data.title,
+          role: data.category || "Patient",
+          quote: data.description || "",
+          rating: Number(data.duration) || 5,
+          image: data.image || "",
+          visibility,
+        });
+      return NextResponse.json({ success: true, id });
+    } else if (contentType === "FAQ") {
+      if (!data.title) return NextResponse.json({ error: "Question is required" }, { status: 400 });
+      const id = crypto.randomUUID();
+      await db
+        .insert(faqs)
+        .values({
+          id,
+          question: data.title,
+          answer: data.description || "",
+          category: data.category || "General",
+          visibility,
+        });
       return NextResponse.json({ success: true, id });
     } else {
       return NextResponse.json(
         { error: "Invalid Content Type" },
-        { status: 400 },
+        { status: 400 }
       );
     }
   } catch (err: any) {
+    console.error("Content operation failed:", err);
     return NextResponse.json(
-      { error: err.message || "Insert operation failed" },
-      { status: 500 },
+      { error: err.message || "Database insert/update operation failed" },
+      { status: 500 }
     );
   }
 });

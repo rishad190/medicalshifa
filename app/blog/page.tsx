@@ -87,9 +87,9 @@ export default function BlogListingPage() {
       try {
         const res = await fetch("/api/admin/content?type=Blog Post");
         if (res.ok) {
-          const data = await res.json();
+          const data = (await res.json()) as any[];
           const publicPosts = data.filter(
-            (p: any) => p.visibility === "Public",
+            (p: any) => p.visibility === "Public"
           );
           setDbPosts(publicPosts);
         }

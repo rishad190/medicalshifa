@@ -7,19 +7,10 @@ CREATE TABLE IF NOT EXISTS users (
   emailVerified DATETIME,
   image TEXT,
   role TEXT NOT NULL DEFAULT 'PATIENT' CHECK (role IN ('ADMIN', 'STAFF', 'PATIENT')),
-  password_hash TEXT
-);
-
-CREATE TABLE IF NOT EXISTS consultation_requests (
-  id TEXT PRIMARY KEY,
-  name TEXT NOT NULL,
-  email TEXT NOT NULL,
-  phone TEXT NOT NULL,
-  service TEXT NOT NULL,
-  status TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new', 'contacted', 'closed')),
+  password_hash TEXT,
+  salt TEXT,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-CREATE INDEX IF NOT EXISTS consultation_requests_status_created_at ON consultation_requests(status, created_at DESC);
 
 CREATE TABLE IF NOT EXISTS accounts (
   id TEXT PRIMARY KEY,
@@ -60,7 +51,7 @@ CREATE TABLE IF NOT EXISTS services (
   description TEXT,
   image TEXT,
   tags TEXT,
-  visibility TEXT NOT NULL DEFAULT 'Draft',
+  visibility TEXT NOT NULL DEFAULT 'Draft' CHECK (visibility IN ('Draft', 'Public')),
   createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -74,7 +65,7 @@ CREATE TABLE IF NOT EXISTS blog_posts (
   author TEXT,
   authorImage TEXT,
   tags TEXT,
-  visibility TEXT NOT NULL DEFAULT 'Draft',
+  visibility TEXT NOT NULL DEFAULT 'Draft' CHECK (visibility IN ('Draft', 'Public')),
   createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -82,6 +73,65 @@ CREATE TABLE IF NOT EXISTS partners (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   image TEXT,
-  visibility TEXT NOT NULL DEFAULT 'Draft',
+  visibility TEXT NOT NULL DEFAULT 'Draft' CHECK (visibility IN ('Draft', 'Public')),
   createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS doctors (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  title TEXT NOT NULL,
+  department TEXT NOT NULL,
+  experience TEXT NOT NULL,
+  bio TEXT,
+  image TEXT,
+  visibility TEXT NOT NULL DEFAULT 'Draft' CHECK (visibility IN ('Draft', 'Public')),
+  hospitalId TEXT,
+  createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (hospitalId) REFERENCES partners(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS hospitals (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  location TEXT NOT NULL,
+  focus TEXT NOT NULL,
+  description TEXT,
+  image TEXT,
+  visibility TEXT NOT NULL DEFAULT 'Draft' CHECK (visibility IN ('Draft', 'Public')),
+  createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS testimonials (
+  id TEXT PRIMARY KEY,
+  quote TEXT NOT NULL,
+  name TEXT NOT NULL,
+  role TEXT NOT NULL,
+  rating INTEGER NOT NULL DEFAULT 5,
+  image TEXT,
+  visibility TEXT NOT NULL DEFAULT 'Draft' CHECK (visibility IN ('Draft', 'Public')),
+  createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS faqs (
+  id TEXT PRIMARY KEY,
+  question TEXT NOT NULL,
+  answer TEXT NOT NULL,
+  category TEXT NOT NULL,
+  visibility TEXT NOT NULL DEFAULT 'Draft' CHECK (visibility IN ('Draft', 'Public')),
+  createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS consultation_requests (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  phone TEXT NOT NULL,
+  service TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new', 'contacted', 'closed')),
+  userId TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (userId) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS consultation_requests_status_created_at ON consultation_requests(status, created_at DESC);

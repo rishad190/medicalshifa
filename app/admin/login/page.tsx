@@ -3,19 +3,22 @@
 import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
+import Link from "next/link";
 
-export default function AdminLoginPage() {
-  const [username, setUsername] = useState("");
+export default function LoginPage() {
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [callbackUrl, setCallbackUrl] = useState("/admin/upload");
+  const [callbackUrl, setCallbackUrl] = useState("/admin/dashboard");
   const router = useRouter();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    setCallbackUrl(params.get("callbackUrl") || "/admin/upload");
+    const cb = params.get("callbackUrl");
+    if (cb) {
+      setCallbackUrl(cb);
+    }
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -25,14 +28,14 @@ export default function AdminLoginPage() {
 
     try {
       const res = await signIn("credentials", {
-        username,
+        email: email.toLowerCase(),
         password,
         redirect: false,
         callbackUrl,
       });
 
       if (res?.error) {
-        setError("Invalid credentials. Please try again.");
+        setError("Invalid email or password. Please try again.");
       } else {
         router.push(callbackUrl);
         router.refresh();
@@ -45,94 +48,92 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-50 items-center justify-center -mt-20 px-6">
-      {/* Background decoration */}
-      <div className="absolute top-0 left-0 w-full h-[300px] bg-linear-to-b from-primary/5 to-transparent pointer-events-none" />
+    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-6 py-12 -mt-20">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_20%,rgba(20,184,166,0.05),transparent_25%),radial-gradient(circle_at_20%_85%,rgba(59,130,246,0.05),transparent_25%)] pointer-events-none" />
 
-      <div className="w-full max-w-md bg-white border border-outline-variant/30 rounded-3xl p-8 md:p-10 shadow-xl relative z-10">
+      <div className="w-full max-w-md rounded-3xl border border-slate-200/80 bg-white p-8 shadow-xl relative z-10 sm:p-10">
         <div className="text-center mb-8">
-          <div className="inline-flex w-16 h-16 bg-primary/5 rounded-full items-center justify-center text-primary mb-4 shadow-inner">
-            <span className="material-symbols-outlined text-3xl">
-              admin_panel_settings
+          <Link href="/" className="inline-flex items-center gap-2 mb-6">
+            <span className="grid size-9 place-items-center rounded-xl bg-teal-700 text-sm font-black text-white shadow-md">
+              ✚
             </span>
-          </div>
-          <h2 className="font-headline-md text-headline-md text-on-surface">
-            Admin Portal
+            <span className="text-left leading-tight">
+              <strong className="block text-sm font-bold text-slate-950">
+                Shifa Global Care
+              </strong>
+            </span>
+          </Link>
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900">
+            Welcome Back
           </h2>
-          <p className="text-sm text-outline mt-2">
-            Sign in to manage services, blog posts, and partners
+          <p className="text-xs text-slate-500 mt-2">
+            Sign in to access your consultations, patient records, and portals
           </p>
         </div>
 
         {error && (
-          <div className="bg-error-container/10 border border-error/20 text-error p-4 rounded-xl text-xs font-semibold mb-6 flex items-center gap-3">
-            <span className="material-symbols-outlined text-lg">error</span>
+          <div className="bg-red-50 border border-red-100 text-red-700 p-4 rounded-xl text-xs font-semibold mb-6 flex items-center gap-3">
+            <span className="text-base">⚠️</span>
             <span>{error}</span>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-outline uppercase tracking-wider block">
-              Username
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+              Email Address
             </label>
-            <div className="relative">
-              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline-variant/70 text-lg">
-                person
-              </span>
-              <input
-                type="text"
-                required
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="e.g. admin"
-                className="w-full bg-slate-50 border border-outline-variant/30 focus:border-primary focus:ring-2 focus:ring-primary/10 rounded-xl py-3 pl-12 pr-4 text-sm focus:outline-none transition-all"
-              />
-            </div>
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="e.g. patient@shifa.care"
+              className="w-full bg-slate-50 border border-slate-200 focus:border-teal-600 focus:ring-2 focus:ring-teal-100 rounded-xl py-3 px-4 text-sm focus:outline-none transition-all"
+            />
           </div>
 
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-outline uppercase tracking-wider block">
-              Password
-            </label>
-            <div className="relative">
-              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline-variant/70 text-lg">
-                lock
-              </span>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full bg-slate-50 border border-outline-variant/30 focus:border-primary focus:ring-2 focus:ring-primary/10 rounded-xl py-3 pl-12 pr-4 text-sm focus:outline-none transition-all"
-              />
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+                Password
+              </label>
+              <a
+                href="#forgot"
+                className="text-xs font-semibold text-teal-700 hover:underline"
+              >
+                Forgot?
+              </a>
             </div>
+            <input
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              className="w-full bg-slate-50 border border-slate-200 focus:border-teal-600 focus:ring-2 focus:ring-teal-100 rounded-xl py-3 px-4 text-sm focus:outline-none transition-all"
+            />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-primary hover:bg-primary/95 text-on-primary font-bold py-3.5 rounded-xl transition-all shadow-md hover:shadow-primary/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-8"
+            className="w-full bg-teal-700 hover:bg-teal-800 text-white font-bold py-3.5 rounded-xl transition-all shadow-md hover:shadow-teal-900/10 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-6"
           >
-            {loading ? (
-              <>
-                <span className="material-symbols-outlined text-lg animate-spin">
-                  sync
-                </span>
-                <span>Signing in...</span>
-              </>
-            ) : (
-              <>
-                <span className="material-symbols-outlined text-lg">login</span>
-                <span>Sign In</span>
-              </>
-            )}
+            {loading ? "Signing in..." : "Sign In"}
           </button>
         </form>
 
-        <div className="mt-8 pt-6 border-t border-outline-variant/20 text-center text-2xs text-outline">
-          <p>Shifa Global Care - Protected Administrator Area</p>
+        <div className="mt-8 pt-6 border-t border-slate-100 text-center text-xs text-slate-500">
+          <p>
+            Don't have an account?{" "}
+            <Link
+              href={`/admin/register?callbackUrl=${encodeURIComponent(callbackUrl)}`}
+              className="text-teal-700 font-bold hover:underline"
+            >
+              Register here
+            </Link>
+          </p>
         </div>
       </div>
     </div>

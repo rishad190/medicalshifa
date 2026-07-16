@@ -1,66 +1,82 @@
 import NextAuth from "next-auth";
 import { D1Adapter } from "@auth/d1-adapter";
 import Credentials from "next-auth/providers/credentials";
+import { getDb } from "@/lib/db";
+import { users } from "@/db/schema";
+import { verifyPassword } from "@/lib/hash";
+import { eq } from "drizzle-orm";
 
 const ADMIN_ROLE = "ADMIN";
 const STAFF_ROLE = "STAFF";
 const PATIENT_ROLE = "PATIENT";
 
-function getD1Database() {
+function getRawD1Database() {
   return (process.env as any).DB ?? (globalThis as any).DB ?? null;
 }
 
-async function getPasswordHash(value: string) {
-  const bytes = new TextEncoder().encode(value);
-  const digest = await crypto.subtle.digest("SHA-256", bytes);
-  return Array.from(new Uint8Array(digest))
-    .map((byte) => byte.toString(16).padStart(2, "0"))
-    .join("");
-}
-
-async function comparePasswords(input: string, expected: string) {
-  const inputHash = await getPasswordHash(input);
-  return inputHash === expected.toLowerCase();
-}
+const useSecureCookies =
+  process.env.NODE_ENV === "production" ||
+  (process.env.AUTH_URL && process.env.AUTH_URL.startsWith("https://"))
+    ? true
+    : false;
+const cookiePrefix = useSecureCookies ? "__Secure-" : "";
 
 export const { handlers, auth, signIn, signOut } = NextAuth(() => {
-  const db = getD1Database();
+  const rawDb = getRawD1Database();
 
   return {
-    adapter: db ? D1Adapter(db) : undefined,
+    adapter: rawDb ? D1Adapter(rawDb) : undefined,
     providers: [
       Credentials({
         name: "Credentials",
         credentials: {
-          username: { label: "Username", type: "text" },
+          email: { label: "Email", type: "email" },
           password: { label: "Password", type: "password" },
         },
         async authorize(credentials) {
-          const username = credentials?.username?.toString() ?? "";
+          const email = credentials?.email?.toString() ?? "";
           const password = credentials?.password?.toString() ?? "";
 
-          const configuredUsername = process.env.ADMIN_USERNAME || "admin";
-          const configuredPasswordHash = process.env.ADMIN_PASSWORD_HASH || "";
-
-          if (!configuredPasswordHash) {
+          if (!email || !password) {
             return null;
           }
 
-          if (
-            username === configuredUsername &&
-            (await comparePasswords(password, configuredPasswordHash))
-          ) {
-            return {
-              id: "admin-id",
-              name: "Administrator",
-              email: "admin@shifa.care",
-              image:
-                "https://lh3.googleusercontent.com/aida-public/AB6AXuBzQL-tqoi4mBI4rAj-vnlNIljOiw2PZRLb5hUxqSfsI0elcXXJiqk2IJlFw8vt6tw1MLr_TCP9pZC4CMTAZ0S4wbZooZvksKcFBNLok_ndGfWUbo5eROBFoiAujUv5bRmZTqpHmgCeOFVpW53IP-rGf4Vx-fJ6c4EcBdTgGqP0a3agXDmCZBzRI-tvjZOtHqCVmmDEg2AOtZCUUamX55TFgrGF0f52avx1tlTxH3USRVfZXv04r8E0IBx0dOAgUFjOZ7OSmIwJTFg",
-              role: ADMIN_ROLE,
-            };
-          }
+          try {
+            const db = getDb();
+            const results = await db
+              .select()
+              .from(users)
+              .where(eq(users.email, email.toLowerCase()))
+              .limit(1);
 
-          return null;
+            if (results.length === 0) {
+              return null;
+            }
+
+            const user = results[0];
+            if (!user.passwordHash || !user.salt) {
+              return null;
+            }
+
+            const isValid = await verifyPassword(
+              password,
+              user.passwordHash,
+              user.salt
+            );
+            if (!isValid) {
+              return null;
+            }
+
+            return {
+              id: user.id,
+              name: user.name,
+              email: user.email,
+              role: user.role,
+            };
+          } catch (error) {
+            console.error("Authorize callback error:", error);
+            return null;
+          }
         },
       }),
     ],
@@ -71,12 +87,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth(() => {
       async jwt({ token, user }) {
         if (user) {
           token.role = (user as any).role ?? PATIENT_ROLE;
+          token.id = user.id;
         }
         return token;
       },
       async session({ session, token }) {
         if (session.user) {
           (session.user as any).role = token.role ?? PATIENT_ROLE;
+          (session.user as any).id = token.id as string;
         }
         return session;
       },
@@ -88,16 +106,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth(() => {
     secret: process.env.AUTH_SECRET,
     cookies: {
       sessionToken: {
-        name: `__Secure-authjs.session-token`,
+        name: `${cookiePrefix}authjs.session-token`,
         options: {
           httpOnly: true,
           sameSite: "lax",
           path: "/",
-          secure: true,
+          secure: useSecureCookies,
         },
       },
     },
   };
 });
 
-export { ADMIN_ROLE, STAFF_ROLE, PATIENT_ROLE, getPasswordHash };
+export { ADMIN_ROLE, STAFF_ROLE, PATIENT_ROLE };
