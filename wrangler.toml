@@ -3,13 +3,13 @@ main = ".open-next/worker.js"
 compatibility_date = "2026-07-16"
 compatibility_flags = ["nodejs_compat"]
 
+routes = [
+  { pattern = "shifaglobalcare.org", custom_domain = true }
+]
+
 [assets]
 directory = ".open-next/assets"
 binding = "ASSETS"
 
 [observability]
 enabled = true
-
-routes = [
-  { pattern = "shifaglobalcare.org", custom_domain = true }
-]
