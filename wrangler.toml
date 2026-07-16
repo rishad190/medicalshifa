@@ -13,7 +13,7 @@ enabled = true
 [[d1_databases]]
 binding = "DB"
 database_name = "db"
-database_id = "d89290dc-5ddd-4ab8-90d8-63e653b1124b"
+database_id = REPLACE_WITH_D1_DATABASE_ID
 
 routes = [
   { pattern = "shifaglobalcare.org", custom_domain = true }
