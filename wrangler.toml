@@ -12,5 +12,5 @@ enabled = true
 
 [[d1_databases]]
 binding = "DB"
-database_name = "shifa-global-care-production"
+database_name = "db"
 database_id = "REPLACE_WITH_D1_DATABASE_ID"
