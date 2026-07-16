@@ -18,7 +18,8 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "Shifa Global Care - Premium Healthcare Consultancy",
-  description: "Excellence in international healthcare consultancy, bridging the gap between patients and elite medical care.",
+  description:
+    "Excellence in international healthcare consultancy, bridging the gap between patients and elite medical care.",
 };
 
 export default function RootLayout({
@@ -39,9 +40,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col bg-background text-on-background font-body-md">
         <Header />
-        <main className="flex-grow pt-20">
-          {children}
-        </main>
+        <main className="grow pt-20">{children}</main>
         <Footer />
       </body>
     </html>
