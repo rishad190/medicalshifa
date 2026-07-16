@@ -3,6 +3,7 @@
 import { useState, useTransition, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { signOut } from "next-auth/react";
 import {
   updateConsultationStatus,
   updateUserRole,
@@ -230,20 +231,32 @@ export default function DashboardTabs({
   return (
     <div className="space-y-6">
       {/* Tabs selector */}
-      <div className="flex flex-wrap gap-2 border-b border-slate-200 pb-2">
-        {tabs.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all cursor-pointer ${
-              activeTab === tab
-                ? "bg-teal-700 text-white shadow-sm"
-                : "text-slate-600 hover:bg-slate-200 hover:text-slate-900"
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-2">
+        <div className="flex flex-wrap gap-2">
+          {tabs.map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all cursor-pointer ${
+                activeTab === tab
+                  ? "bg-teal-700 text-white shadow-sm"
+                  : "text-slate-600 hover:bg-slate-200 hover:text-slate-900"
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+        <button
+          onClick={() => {
+            if (confirm("Are you sure you want to sign out?")) {
+              signOut({ callbackUrl: "/admin/login" });
+            }
+          }}
+          className="px-4 py-2 text-sm font-bold text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
+        >
+          Sign Out
+        </button>
       </div>
 
       {errorMsg && (
