@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "functions": {
+    "/admin/dashboard": {},
+    "/api/admin/content": {},
+    "/api/admin/users": {},
+    "/api/appointments": {},
+    "/api/auth/[...nextauth]": {},
+    "/blog/[slug]": {},
+    "/patient/dashboard": {}
+  }
+}
