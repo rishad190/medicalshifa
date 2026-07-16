@@ -124,17 +124,6 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className="mt-8 pt-6 border-t border-slate-100 text-center text-xs text-slate-500">
-          <p>
-            Don't have an account?{" "}
-            <Link
-              href={`/admin/register?callbackUrl=${encodeURIComponent(callbackUrl)}`}
-              className="text-teal-700 font-bold hover:underline"
-            >
-              Register here
-            </Link>
-          </p>
-        </div>
       </div>
     </div>
   );
