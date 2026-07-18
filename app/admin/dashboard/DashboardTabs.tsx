@@ -58,43 +58,24 @@ export default function DashboardTabs({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // File change handler with automatic center-cropping & resizing
+  // CROP MODAL STATES
+  const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
+  const [cropZoom, setCropZoom] = useState(1);
+  const [cropOffset, setCropOffset] = useState({ x: 0, y: 0 });
+  const [isDraggingCrop, setIsDraggingCrop] = useState(false);
+  const [cropDragStart, setCropDragStart] = useState({ x: 0, y: 0 });
+  const [cropImageDimensions, setCropImageDimensions] = useState({ width: 200, height: 200 });
+
+  // File change handler (opens interactive crop modal)
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = (event) => {
-        const img = new window.Image();
-        img.onload = () => {
-          const canvas = document.createElement("canvas");
-          const size = 400; // Target dimensions (400x400 px)
-          canvas.width = size;
-          canvas.height = size;
-          
-          const ctx = canvas.getContext("2d");
-          if (ctx) {
-            let sx = 0;
-            let sy = 0;
-            let sWidth = img.width;
-            let sHeight = img.height;
-            
-            // Calculate center crop boundaries
-            if (img.width > img.height) {
-              sx = (img.width - img.height) / 2;
-              sWidth = img.height;
-            } else {
-              sy = (img.height - img.width) / 2;
-              sHeight = img.width;
-            }
-            
-            ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, size, size);
-            
-            // Convert to optimized JPEG (quality 0.8)
-            const croppedBase64 = canvas.toDataURL("image/jpeg", 0.8);
-            setFormImagePreview(croppedBase64);
-          }
-        };
-        img.src = event.target?.result as string;
+        setCropImageSrc(event.target?.result as string);
+        setCropZoom(1);
+        setCropOffset({ x: 0, y: 0 });
+        setCropImageDimensions({ width: 200, height: 200 });
       };
       reader.readAsDataURL(file);
     }
@@ -1024,6 +1005,163 @@ export default function DashboardTabs({
           </>
         )}
       </div>
+
+      {cropImageSrc && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full border border-slate-200 shadow-2xl space-y-6">
+            <div>
+              <h3 className="text-lg font-bold text-slate-900">Adjust Photo Position</h3>
+              <p className="text-xs text-slate-400 mt-1">Drag to position, and slide to zoom your crop area.</p>
+            </div>
+
+            {/* Interactive Crop Container */}
+            <div
+              className="relative w-[320px] h-[320px] mx-auto bg-slate-900 rounded-2xl overflow-hidden cursor-move select-none"
+              onMouseDown={(e) => {
+                setIsDraggingCrop(true);
+                setCropDragStart({ x: e.clientX - cropOffset.x, y: e.clientY - cropOffset.y });
+              }}
+              onMouseMove={(e) => {
+                if (isDraggingCrop) {
+                  setCropOffset({
+                    x: e.clientX - cropDragStart.x,
+                    y: e.clientY - cropDragStart.y,
+                  });
+                }
+              }}
+              onMouseUp={() => setIsDraggingCrop(false)}
+              onMouseLeave={() => setIsDraggingCrop(false)}
+              onTouchStart={(e) => {
+                setIsDraggingCrop(true);
+                const touch = e.touches[0];
+                setCropDragStart({ x: touch.clientX - cropOffset.x, y: touch.clientY - cropOffset.y });
+              }}
+              onTouchMove={(e) => {
+                if (isDraggingCrop) {
+                  const touch = e.touches[0];
+                  setCropOffset({
+                    x: touch.clientX - cropDragStart.x,
+                    y: touch.clientY - cropDragStart.y,
+                  });
+                }
+              }}
+              onTouchEnd={() => setIsDraggingCrop(false)}
+            >
+              {/* Image underneath */}
+              <img
+                id="cropping-image"
+                src={cropImageSrc}
+                alt="Original upload"
+                className="absolute origin-center"
+                onLoad={(e) => {
+                  const img = e.currentTarget;
+                  const naturalWidth = img.naturalWidth;
+                  const naturalHeight = img.naturalHeight;
+                  
+                  let w = 200;
+                  let h = 200;
+                  if (naturalWidth > naturalHeight) {
+                    w = 200 * (naturalWidth / naturalHeight);
+                  } else {
+                    h = 200 * (naturalHeight / naturalWidth);
+                  }
+                  setCropImageDimensions({ width: w, height: h });
+                }}
+                style={{
+                  transform: `translate(${cropOffset.x}px, ${cropOffset.y}px) scale(${cropZoom})`,
+                  top: "50%",
+                  left: "50%",
+                  marginTop: `-${cropImageDimensions.height / 2}px`,
+                  marginLeft: `-${cropImageDimensions.width / 2}px`,
+                  width: `${cropImageDimensions.width}px`,
+                  height: `${cropImageDimensions.height}px`,
+                  maxWidth: "none",
+                }}
+              />
+
+              {/* Viewport Mask Ring */}
+              <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                <div className="w-[200px] h-[200px] border border-teal-500 rounded-xl shadow-[0_0_0_9999px_rgba(15,23,42,0.65)]" />
+              </div>
+            </div>
+
+            {/* Zoom Slider Controls */}
+            <div className="space-y-2">
+              <div className="flex justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
+                <span>Zoom Scale</span>
+                <span>{Math.round(cropZoom * 100)}%</span>
+              </div>
+              <input
+                type="range"
+                min="1"
+                max="3"
+                step="0.01"
+                value={cropZoom}
+                onChange={(e) => setCropZoom(parseFloat(e.target.value))}
+                className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-teal-600"
+              />
+            </div>
+
+            {/* Modal actions */}
+            <div className="flex gap-3 justify-end pt-2">
+              <button
+                type="button"
+                onClick={() => setCropImageSrc(null)}
+                className="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  const img = document.getElementById("cropping-image") as HTMLImageElement;
+                  if (img) {
+                    const canvas = document.createElement("canvas");
+                    const size = 400;
+                    canvas.width = size;
+                    canvas.height = size;
+                    const ctx = canvas.getContext("2d");
+                    if (ctx) {
+                      const naturalWidth = img.naturalWidth;
+                      const naturalHeight = img.naturalHeight;
+
+                      const dispWidth = cropImageDimensions.width * cropZoom;
+                      const dispHeight = cropImageDimensions.height * cropZoom;
+
+                      // Image top-left offset inside the 320x320 container
+                      const imgLeft = 160 - dispWidth / 2 + cropOffset.x;
+                      const imgTop = 160 - dispHeight / 2 + cropOffset.y;
+
+                      // Crop viewport top-left is at (60, 60) relative to the 320x320 container
+                      const cropLeft = 60;
+                      const cropTop = 60;
+
+                      // Top-left of the viewport relative to the image
+                      const relX = cropLeft - imgLeft;
+                      const relY = cropTop - imgTop;
+
+                      // Convert back to original image scale
+                      const srcX = relX * (naturalWidth / dispWidth);
+                      const srcY = relY * (naturalHeight / dispHeight);
+                      const srcWidth = 200 * (naturalWidth / dispWidth);
+                      const srcHeight = 200 * (naturalHeight / dispHeight);
+
+                      ctx.drawImage(img, srcX, srcY, srcWidth, srcHeight, 0, 0, size, size);
+
+                      const finalBase64 = canvas.toDataURL("image/jpeg", 0.85);
+                      setFormImagePreview(finalBase64);
+                      setCropImageSrc(null);
+                    }
+                  }
+                }}
+                className="px-5 py-2 bg-teal-700 hover:bg-teal-800 text-white rounded-xl text-xs font-bold transition cursor-pointer"
+              >
+                Apply Crop
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
