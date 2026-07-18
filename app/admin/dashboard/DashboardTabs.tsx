@@ -43,7 +43,7 @@ export default function DashboardTabs({
     "Service" | "Doctor" | "Hospital" | "Blog Post" | "Testimonial" | "FAQ" | "Partner"
   >("Service");
   const [formTitle, setFormTitle] = useState("");
-  const [formCategory, setFormCategory] = useState("General Consultation");
+  const [formCategory, setFormCategory] = useState("Clinical Care");
   const [formDuration, setFormDuration] = useState("");
   const [formDescription, setFormDescription] = useState("");
   const [formVisibility, setFormVisibility] = useState<"Draft" | "Public">("Draft");
@@ -427,7 +427,27 @@ export default function DashboardTabs({
                     "Testimonials": "Testimonial",
                     "FAQs": "FAQ"
                   };
-                  setFormContentType(typeMap[activeTab] || "Service");
+                  const type = typeMap[activeTab] || "Service";
+                  setFormContentType(type);
+                  setFormTitle("");
+                  setFormDescription("");
+                  setFormImagePreview(null);
+                  if (type === "Service") {
+                    setFormCategory("Clinical Care");
+                    setFormExtra({});
+                  } else if (type === "Doctor") {
+                    setFormCategory("Cardiology");
+                    setFormExtra({ designation: "", experience: "", hospitalId: "" });
+                  } else if (type === "Hospital") {
+                    setFormCategory("");
+                    setFormExtra({ location: "Delhi, India", focus: "" });
+                  } else if (type === "FAQ") {
+                    setFormCategory("General Care");
+                    setFormExtra({});
+                  } else {
+                    setFormCategory("");
+                    setFormExtra({});
+                  }
                   setActiveTab("Upload");
                 }}
                 className="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-xs transition cursor-pointer"
@@ -593,7 +613,22 @@ export default function DashboardTabs({
                           setFormTitle("");
                           setFormDescription("");
                           setFormImagePreview(null);
-                          setFormExtra({});
+                          if (type === "Service") {
+                            setFormCategory("Clinical Care");
+                            setFormExtra({});
+                          } else if (type === "Doctor") {
+                            setFormCategory("Cardiology");
+                            setFormExtra({ designation: "", experience: "", hospitalId: "" });
+                          } else if (type === "Hospital") {
+                            setFormCategory("");
+                            setFormExtra({ location: "Delhi, India", focus: "" });
+                          } else if (type === "FAQ") {
+                            setFormCategory("General Care");
+                            setFormExtra({});
+                          } else {
+                            setFormCategory("");
+                            setFormExtra({});
+                          }
                         }}
                         className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
                           formContentType === type
@@ -636,10 +671,9 @@ export default function DashboardTabs({
                         onChange={(e) => setFormCategory(e.target.value)}
                         className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-teal-600"
                       >
-                        <option value="General Consultation">General Consultation</option>
-                        <option value="Specialized Surgery">Specialized Surgery</option>
-                        <option value="Diagnostics & Labs">Diagnostics & Labs</option>
-                        <option value="Wellness & Prevention">Wellness & Prevention</option>
+                        <option value="Clinical Care">Clinical Care</option>
+                        <option value="Logistics & Visas">Logistics & Visas</option>
+                        <option value="Support Services">Support Services</option>
                       </select>
                     </div>
                     <div className="space-y-1.5">
@@ -659,13 +693,16 @@ export default function DashboardTabs({
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-1.5">
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Department</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. Cardiology"
+                      <select
                         value={formCategory}
                         onChange={(e) => setFormCategory(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-teal-600"
-                      />
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3.5 px-4 text-sm focus:outline-none focus:border-teal-600"
+                      >
+                        <option value="Cardiology">Cardiology</option>
+                        <option value="Oncology">Oncology</option>
+                        <option value="Orthopedics">Orthopedics</option>
+                        <option value="Neurosurgery">Neurosurgery</option>
+                      </select>
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Designation</label>
@@ -694,13 +731,16 @@ export default function DashboardTabs({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Location</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. Chennai, India"
-                        value={formExtra.location || ""}
+                      <select
+                        value={formExtra.location || "Delhi, India"}
                         onChange={(e) => setFormExtra({ ...formExtra, location: e.target.value })}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-teal-600"
-                      />
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3.5 px-4 text-sm focus:outline-none focus:border-teal-600"
+                      >
+                        <option value="Delhi, India">Delhi, India</option>
+                        <option value="Chennai, India">Chennai, India</option>
+                        <option value="Gurugram, India">Gurugram, India</option>
+                        <option value="Bangalore, India">Bangalore, India</option>
+                      </select>
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Focus Specialties</label>
