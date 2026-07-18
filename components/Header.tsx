@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import { navItems } from "@/lib/content";
 
@@ -12,7 +13,16 @@ export default function Header() {
     <header className="fixed inset-x-0 top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 lg:px-8">
         <Link href="/" className="flex items-center gap-3" onClick={() => setOpen(false)}>
-          <span className="grid size-10 place-items-center rounded-xl bg-teal-700 text-xl font-black text-white shadow-lg shadow-teal-900/15">✚</span>
+          <div className="relative w-12 h-12 flex-shrink-0">
+            <Image
+              src="/logoshifa.png"
+              alt="Shifa Global Care Logo"
+              fill
+              className="object-contain"
+              priority
+              sizes="48px"
+            />
+          </div>
           <span className="leading-tight"><strong className="block font-display text-base text-slate-950">Shifa Global Care</strong><span className="text-[10px] font-bold uppercase tracking-[.18em] text-teal-700">Solution Limited</span></span>
         </Link>
         <nav className="hidden items-center gap-6 xl:flex" aria-label="Primary navigation">

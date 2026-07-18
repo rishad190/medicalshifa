@@ -28,7 +28,7 @@ export default function DoctorsPage() {
       department: "Cardiology",
       experience: "18 years",
       bio: "Specializes in interventional adult cardiology, transcatheter aortic valve replacements (TAVR), and diagnostic cardiac imaging protocols.",
-      image: "https://images.unsplash.com/photo-1594824813573-246434de83fb?auto=format&fit=crop&w=400&q=80",
+      image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80",
     },
     {
       id: "dr-sandeep-verma",
@@ -37,7 +37,7 @@ export default function DoctorsPage() {
       department: "Oncology",
       experience: "22 years",
       bio: "Renowned surgical oncologist targeting solid tumor resection, robotic-assisted oncology procedures, and targeted chemotherapy programs.",
-      image: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=400&q=80",
+      image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=80",
     },
     {
       id: "dr-priya-nair",
@@ -46,7 +46,7 @@ export default function DoctorsPage() {
       department: "Orthopedics",
       experience: "15 years",
       bio: "Expert in computer-assisted knee and hip arthroplasties, spinal decompression surgeries, and regenerative joint treatment coordinates.",
-      image: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=400&q=80",
+      image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=400&q=80",
     },
     {
       id: "dr-farhan-malik",
@@ -55,7 +55,7 @@ export default function DoctorsPage() {
       department: "Neurosurgery",
       experience: "20 years",
       bio: "Pioneering micro-neurosurgery specialist focusing on brain tumor resections, deep brain stimulation (DBS), and complex spine trauma recovery.",
-      image: "https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&w=400&q=80",
+      image: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=400&q=80",
     },
   ];
 
