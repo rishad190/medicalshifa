@@ -39,10 +39,11 @@ export default function DashboardTabs({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const router = useRouter();
 
-  // UPLOAD FORM STATES
+  // UPLOAD / EDIT FORM STATES
   const [formContentType, setFormContentType] = useState<
     "Service" | "Doctor" | "Hospital" | "Blog Post" | "Testimonial" | "FAQ" | "Partner"
   >("Service");
+  const [formEditId, setFormEditId] = useState<string | null>(null);
   const [formTitle, setFormTitle] = useState("");
   const [formCategory, setFormCategory] = useState("Clinical Care");
   const [formDuration, setFormDuration] = useState("");
@@ -84,6 +85,55 @@ export default function DashboardTabs({
     setFormTags(formTags.filter((t) => t !== tagToRemove));
   };
 
+  // Switch to Edit Mode
+  const handleStartEdit = (type: typeof formContentType, item: any) => {
+    setFormContentType(type);
+    setFormEditId(item.id || item.slug || null);
+    setFormTitle(item.title || item.name || item.question || "");
+    setFormDescription(item.description || item.content || item.bio || item.quote || item.answer || "");
+    setFormVisibility(item.visibility || "Draft");
+    setFormImagePreview(item.image || null);
+
+    if (type === "Service") {
+      setFormCategory(item.category || "Clinical Care");
+      setFormDuration(item.duration || "");
+      setFormTags(item.tags ? item.tags.split(",") : []);
+      setFormExtra({});
+    } else if (type === "Doctor") {
+      setFormCategory(item.department || "Cardiology");
+      setFormExtra({
+        designation: item.title || "", // Designation is saved as title in doctor table
+        experience: item.experience || "",
+        hospitalId: item.hospitalId || "",
+      });
+    } else if (type === "Hospital") {
+      setFormCategory("");
+      setFormExtra({
+        location: item.location || "Delhi, India",
+        focus: item.focus || "",
+      });
+    } else if (type === "Testimonial") {
+      setFormCategory("");
+      setFormExtra({
+        designation: item.role || "",
+        rating: item.rating || 5,
+      });
+    } else if (type === "FAQ") {
+      setFormCategory(item.category || "General Care");
+      setFormExtra({});
+    } else if (type === "Blog Post") {
+      setFormCategory(item.category || "Care Insights");
+      setFormExtra({
+        excerpt: item.excerpt || "",
+        author: item.author || "Dr. Sarah Khalil",
+        authorImage: item.authorImage || "",
+      });
+      setFormTags(item.tags ? item.tags.split(",") : []);
+    }
+
+    setIsAdding(true);
+  };
+
   // Submit content publish handler
   const handlePublish = async () => {
     setPublishStatus("publishing");
@@ -96,6 +146,15 @@ export default function DashboardTabs({
         visibility: formVisibility,
         image: formImagePreview,
       };
+
+      // Pass ID/Slug if editing
+      if (formEditId) {
+        if (formContentType === "Blog Post") {
+          payload.slug = formEditId;
+        } else {
+          payload.id = formEditId;
+        }
+      }
 
       if (formContentType === "Service") {
         payload.title = formTitle;
@@ -159,6 +218,7 @@ export default function DashboardTabs({
         setFormImagePreview(null);
         setFormTags(["Cardiology", "Wellness"]);
         setFormExtra({});
+        setFormEditId(null);
         
         // Refresh server components data
         router.refresh();
@@ -272,9 +332,11 @@ export default function DashboardTabs({
           <div className="space-y-6">
             <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
               <div>
-                <h2 className="text-xl font-bold text-slate-800">Add New {formContentType} Entry</h2>
+                <h2 className="text-xl font-bold text-slate-800">
+                  {formEditId ? "Edit" : "Add New"} {formContentType} Entry
+                </h2>
                 <p className="text-xs text-slate-400 mt-1">
-                  Compile and register new entries directly into the production Cloudflare D1 index.
+                  Compile and register updates directly into the production Cloudflare D1 index.
                 </p>
               </div>
               
@@ -284,6 +346,7 @@ export default function DashboardTabs({
                     setFormTitle("");
                     setFormDescription("");
                     setFormImagePreview(null);
+                    setFormEditId(null);
                     setIsAdding(false);
                   }}
                   className="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 transition cursor-pointer"
@@ -295,7 +358,7 @@ export default function DashboardTabs({
                   disabled={publishStatus === "publishing"}
                   className="px-5 py-2 bg-teal-700 hover:bg-teal-800 text-white rounded-xl text-xs font-bold transition disabled:opacity-50 flex items-center gap-2 cursor-pointer"
                 >
-                  {publishStatus === "publishing" ? "Publishing..." : "Publish Content"}
+                  {publishStatus === "publishing" ? "Saving..." : formEditId ? "Save Changes" : "Publish Content"}
                 </button>
               </div>
             </div>
@@ -801,6 +864,7 @@ export default function DashboardTabs({
                       setFormTitle("");
                       setFormDescription("");
                       setFormImagePreview(null);
+                      setFormEditId(null);
                       
                       // Initialize correct category/extra defaults
                       if (type === "Service") {
@@ -903,7 +967,13 @@ export default function DashboardTabs({
                               <td className="p-4 text-xs text-slate-400">
                                 {new Date(item.createdAt).toLocaleDateString()}
                               </td>
-                              <td className="p-4 text-right">
+                              <td className="p-4 text-right whitespace-nowrap">
+                                <button
+                                  onClick={() => handleStartEdit(contentType, item)}
+                                  className="px-3 py-1 bg-teal-50 border border-teal-100 text-teal-700 rounded-lg hover:bg-teal-100 text-xs font-bold transition cursor-pointer mr-2"
+                                >
+                                  Edit
+                                </button>
                                 <button
                                   onClick={() =>
                                     handleDelete(contentType, item.id || item.slug)

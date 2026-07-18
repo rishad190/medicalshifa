@@ -109,7 +109,7 @@ export const POST = auth(async (req) => {
 
     if (contentType === "Service") {
       if (!data.title) return NextResponse.json({ error: "Title is required" }, { status: 400 });
-      const id = slugify(data.title);
+      const id = data.id || slugify(data.title);
       await db
         .insert(services)
         .values({
@@ -137,7 +137,7 @@ export const POST = auth(async (req) => {
       return NextResponse.json({ success: true, id });
     } else if (contentType === "Blog Post") {
       if (!data.title) return NextResponse.json({ error: "Title is required" }, { status: 400 });
-      const slug = slugify(data.title);
+      const slug = data.slug || slugify(data.title);
       const excerpt = data.description ? data.description.substring(0, 150) + "..." : "";
       const author = req.auth.user?.name || "Dr. Sarah Khalil";
       const authorImage = req.auth.user?.image || "";
@@ -171,7 +171,7 @@ export const POST = auth(async (req) => {
       return NextResponse.json({ success: true, slug });
     } else if (contentType === "Partner") {
       if (!data.title) return NextResponse.json({ error: "Name/Title is required" }, { status: 400 });
-      const id = slugify(data.title);
+      const id = data.id || slugify(data.title);
       await db
         .insert(partners)
         .values({
@@ -191,7 +191,7 @@ export const POST = auth(async (req) => {
       return NextResponse.json({ success: true, id });
     } else if (contentType === "Doctor") {
       if (!data.title) return NextResponse.json({ error: "Name is required" }, { status: 400 });
-      const id = slugify(data.title);
+      const id = data.id || slugify(data.title);
       await db
         .insert(doctors)
         .values({
@@ -221,7 +221,7 @@ export const POST = auth(async (req) => {
       return NextResponse.json({ success: true, id });
     } else if (contentType === "Hospital") {
       if (!data.title) return NextResponse.json({ error: "Name is required" }, { status: 400 });
-      const id = slugify(data.title);
+      const id = data.id || slugify(data.title);
       await db
         .insert(hospitals)
         .values({
@@ -247,7 +247,7 @@ export const POST = auth(async (req) => {
       return NextResponse.json({ success: true, id });
     } else if (contentType === "Testimonial") {
       if (!data.title) return NextResponse.json({ error: "Name is required" }, { status: 400 });
-      const id = crypto.randomUUID();
+      const id = data.id || crypto.randomUUID();
       await db
         .insert(testimonials)
         .values({
@@ -258,11 +258,22 @@ export const POST = auth(async (req) => {
           rating: Number(data.duration) || 5,
           image: data.image || "",
           visibility,
+        })
+        .onConflictDoUpdate({
+          target: testimonials.id,
+          set: {
+            name: data.title,
+            role: data.category || "Patient",
+            quote: data.description || "",
+            rating: Number(data.duration) || 5,
+            image: data.image || "",
+            visibility,
+          },
         });
       return NextResponse.json({ success: true, id });
     } else if (contentType === "FAQ") {
       if (!data.title) return NextResponse.json({ error: "Question is required" }, { status: 400 });
-      const id = crypto.randomUUID();
+      const id = data.id || crypto.randomUUID();
       await db
         .insert(faqs)
         .values({
@@ -271,6 +282,15 @@ export const POST = auth(async (req) => {
           answer: data.description || "",
           category: data.category || "General",
           visibility,
+        })
+        .onConflictDoUpdate({
+          target: faqs.id,
+          set: {
+            question: data.title,
+            answer: data.description || "",
+            category: data.category || "General",
+            visibility,
+          },
         });
       return NextResponse.json({ success: true, id });
     } else {
