@@ -58,13 +58,43 @@ export default function DashboardTabs({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // File change handler
+  // File change handler with automatic center-cropping & resizing
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormImagePreview(reader.result as string);
+      reader.onload = (event) => {
+        const img = new window.Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const size = 400; // Target dimensions (400x400 px)
+          canvas.width = size;
+          canvas.height = size;
+          
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            let sx = 0;
+            let sy = 0;
+            let sWidth = img.width;
+            let sHeight = img.height;
+            
+            // Calculate center crop boundaries
+            if (img.width > img.height) {
+              sx = (img.width - img.height) / 2;
+              sWidth = img.height;
+            } else {
+              sy = (img.height - img.width) / 2;
+              sHeight = img.width;
+            }
+            
+            ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, size, size);
+            
+            // Convert to optimized JPEG (quality 0.8)
+            const croppedBase64 = canvas.toDataURL("image/jpeg", 0.8);
+            setFormImagePreview(croppedBase64);
+          }
+        };
+        img.src = event.target?.result as string;
       };
       reader.readAsDataURL(file);
     }
