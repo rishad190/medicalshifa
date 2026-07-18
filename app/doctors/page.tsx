@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 
 type DoctorItem = {
   id: string;
@@ -9,6 +10,7 @@ type DoctorItem = {
   department: string;
   experience: string;
   bio?: string;
+  image?: string;
 };
 
 export default function DoctorsPage() {
@@ -26,6 +28,7 @@ export default function DoctorsPage() {
       department: "Cardiology",
       experience: "18 years",
       bio: "Specializes in interventional adult cardiology, transcatheter aortic valve replacements (TAVR), and diagnostic cardiac imaging protocols.",
+      image: "https://images.unsplash.com/photo-1594824813573-246434de83fb?auto=format&fit=crop&w=400&q=80",
     },
     {
       id: "dr-sandeep-verma",
@@ -34,6 +37,7 @@ export default function DoctorsPage() {
       department: "Oncology",
       experience: "22 years",
       bio: "Renowned surgical oncologist targeting solid tumor resection, robotic-assisted oncology procedures, and targeted chemotherapy programs.",
+      image: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=400&q=80",
     },
     {
       id: "dr-priya-nair",
@@ -42,6 +46,7 @@ export default function DoctorsPage() {
       department: "Orthopedics",
       experience: "15 years",
       bio: "Expert in computer-assisted knee and hip arthroplasties, spinal decompression surgeries, and regenerative joint treatment coordinates.",
+      image: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=400&q=80",
     },
     {
       id: "dr-farhan-malik",
@@ -50,6 +55,7 @@ export default function DoctorsPage() {
       department: "Neurosurgery",
       experience: "20 years",
       bio: "Pioneering micro-neurosurgery specialist focusing on brain tumor resections, deep brain stimulation (DBS), and complex spine trauma recovery.",
+      image: "https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&w=400&q=80",
     },
   ];
 
@@ -76,6 +82,7 @@ export default function DoctorsPage() {
     department: d.department || "General Medicine",
     experience: d.experience || "5 years",
     bio: d.bio || "",
+    image: d.image || "",
   }));
 
   const allDoctors = [...defaultDoctors, ...formattedDbDoctors];
@@ -96,10 +103,10 @@ export default function DoctorsPage() {
         {/* Header */}
         <header className="max-w-3xl mb-12">
           <span className="text-teal-700 font-bold text-xs uppercase tracking-widest block mb-4">
-            RENOUWNED MEDICAL SPECIALISTS
+            RENOWNED MEDICAL SPECIALISTS
           </span>
           <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight sm:text-5xl">
-            Partner Specialists & surgeons
+            Partner Specialists & Surgeons
           </h1>
           <p className="text-base text-slate-600 mt-4 leading-relaxed">
             We connect you with highly experienced surgeons and clinical experts in India. All specialists in our network hold advanced qualifications, maintain high procedural success rates, and coordinate pre-travel digital case discussions.
@@ -151,19 +158,35 @@ export default function DoctorsPage() {
                 className="bg-white border border-slate-200 rounded-3xl p-8 shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
               >
                 <div>
-                  <div className="flex justify-between items-start gap-4">
+                  <div className="flex gap-4 items-center mb-6">
+                    <div className="relative size-16 rounded-2xl overflow-hidden border border-slate-100 bg-slate-50 flex-shrink-0">
+                      {doctor.image ? (
+                        <Image
+                          src={doctor.image}
+                          alt={doctor.name}
+                          fill
+                          className="object-cover"
+                          sizes="64px"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-2xl font-bold bg-teal-50 text-teal-800">
+                          🩺
+                        </div>
+                      )}
+                    </div>
                     <div>
                       <h3 className="text-xl font-bold text-slate-900">{doctor.name}</h3>
                       <p className="text-xs font-bold text-teal-700 uppercase tracking-wider mt-1">
                         {doctor.title}
                       </p>
                     </div>
-                    <span className="text-3xs font-extrabold uppercase bg-sky-50 text-sky-800 border border-sky-200 px-2.5 py-1 rounded-full">
-                      {doctor.experience} Experience
-                    </span>
                   </div>
 
-                  <p className="text-xs text-slate-500 mt-6 leading-relaxed">
+                  <span className="inline-block text-3xs font-extrabold uppercase bg-sky-50 text-sky-800 border border-sky-200 px-2.5 py-1 rounded-full mb-4">
+                    {doctor.experience} Experience
+                  </span>
+
+                  <p className="text-xs text-slate-500 leading-relaxed">
                     {doctor.bio}
                   </p>
                 </div>

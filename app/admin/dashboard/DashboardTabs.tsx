@@ -640,11 +640,10 @@ export default function DashboardTabs({
                       
                       {formImagePreview ? (
                         <div className="relative w-full h-32 rounded-xl overflow-hidden shadow-inner bg-slate-100">
-                          <Image
+                          <img
                             src={formImagePreview}
                             alt="Upload preview"
-                            fill
-                            className="object-cover"
+                            className="w-full h-full object-cover"
                           />
                           <button
                             type="button"
