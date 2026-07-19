@@ -46,16 +46,9 @@ export default function ContactPage() {
 
   const offices = [
     {
-      country: "India Operations",
-      city: "New Delhi",
-      address: "Shifa Global Care, Saket District Centre, New Delhi, 110017",
-      phone: "+91 98765 43210",
-      email: "info@shifaglobal.care",
-    },
-    {
       country: "Bangladesh Liaison Office",
       city: "Dhaka",
-      address: "Shifa Global Care, Gulshan-2, Dhaka, 1212",
+      address: "Meghna Air Overseas, Shatabdi Centre, Room No-9/B (9th Flr), 292, Inner Circular Road, Fakirapool, Dhaka-1000.",
       phone: "+880 1712 345678",
       email: "dhaka@shifaglobal.care",
     },

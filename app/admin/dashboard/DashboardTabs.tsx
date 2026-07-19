@@ -20,6 +20,7 @@ type DashboardTabsProps = {
   hospitals: any[];
   testimonials: any[];
   faqs: any[];
+  teamMembers?: any[];
 };
 
 export default function DashboardTabs({
@@ -32,6 +33,7 @@ export default function DashboardTabs({
   hospitals,
   testimonials,
   faqs,
+  teamMembers = [],
 }: DashboardTabsProps) {
   const [activeTab, setActiveTab] = useState("Consultations");
   const [isAdding, setIsAdding] = useState(false);
@@ -41,7 +43,7 @@ export default function DashboardTabs({
 
   // UPLOAD / EDIT FORM STATES
   const [formContentType, setFormContentType] = useState<
-    "Service" | "Doctor" | "Hospital" | "Blog Post" | "Testimonial" | "FAQ" | "Partner"
+    "Service" | "Doctor" | "Hospital" | "Blog Post" | "Testimonial" | "FAQ" | "Partner" | "Team Member"
   >("Service");
   const [formEditId, setFormEditId] = useState<string | null>(null);
   const [formTitle, setFormTitle] = useState("");
@@ -140,6 +142,9 @@ export default function DashboardTabs({
         authorImage: item.authorImage || "",
       });
       setFormTags(item.tags ? item.tags.split(",") : []);
+    } else if (type === "Team Member") {
+      setFormCategory(item.role || "Staff");
+      setFormExtra({});
     }
 
     setIsAdding(true);
@@ -204,6 +209,10 @@ export default function DashboardTabs({
         payload.question = formTitle;
         payload.answer = formDescription;
         payload.category = formCategory;
+      } else if (formContentType === "Team Member") {
+        payload.title = formTitle;
+        payload.category = formCategory;
+        payload.description = formDescription;
       }
 
       const res = await fetch("/api/admin/content", {
@@ -287,7 +296,8 @@ export default function DashboardTabs({
     "Hospitals",
     "Blog Posts",
     "Testimonials",
-    "FAQs"
+    "FAQs",
+    "Team"
   ];
 
   return (
@@ -394,7 +404,7 @@ export default function DashboardTabs({
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
                     {formContentType === "FAQ"
                       ? "Question"
-                      : ["Doctor", "Hospital", "Testimonial", "Partner"].includes(formContentType)
+                      : ["Doctor", "Hospital", "Testimonial", "Partner", "Team Member"].includes(formContentType)
                       ? "Name"
                       : "Title"}
                   </label>
@@ -543,6 +553,20 @@ export default function DashboardTabs({
                       <option value="Visa & Travel">Visa & Travel</option>
                       <option value="Medical & Safety">Medical & Safety</option>
                     </select>
+                  </div>
+                )}
+
+                {formContentType === "Team Member" && (
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Role / Designation</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. CEO & Founder, Executive..."
+                      value={formCategory}
+                      onChange={(e) => setFormCategory(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-teal-600"
+                    />
                   </div>
                 )}
 
@@ -852,8 +876,8 @@ export default function DashboardTabs({
               </div>
             )}
 
-            {/* Content Tabs (Services, Doctors, Hospitals, Blog Posts, Testimonials, FAQs) */}
-            {["Services", "Doctors", "Hospitals", "Blog Posts", "Testimonials", "FAQs"].includes(
+            {/* Content Tabs (Services, Doctors, Hospitals, Blog Posts, Testimonials, FAQs, Team) */}
+            {["Services", "Doctors", "Hospitals", "Blog Posts", "Testimonials", "FAQs", "Team"].includes(
               activeTab
             ) && (
               <div className="space-y-4">
@@ -867,7 +891,8 @@ export default function DashboardTabs({
                         "Hospitals": "Hospital",
                         "Blog Posts": "Blog Post",
                         "Testimonials": "Testimonial",
-                        "FAQs": "FAQ"
+                        "FAQs": "FAQ",
+                        "Team": "Team Member"
                       };
                       const type = typeMap[activeTab] || "Service";
                       setFormContentType(type);
@@ -889,6 +914,9 @@ export default function DashboardTabs({
                       } else if (type === "FAQ") {
                         setFormCategory("General Care");
                         setFormExtra({});
+                      } else if (type === "Team Member") {
+                        setFormCategory("Staff");
+                        setFormExtra({});
                       } else {
                         setFormCategory("");
                         setFormExtra({});
@@ -897,7 +925,7 @@ export default function DashboardTabs({
                     }}
                     className="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-xs transition cursor-pointer"
                   >
-                    Add New {activeTab.slice(0, -1)}
+                    Add New {activeTab === "Team" ? "Team Member" : activeTab.slice(0, -1)}
                   </button>
                 </div>
 
@@ -929,6 +957,10 @@ export default function DashboardTabs({
                     items = faqs;
                     contentType = "FAQ";
                     labelField = "question";
+                  } else if (activeTab === "Team") {
+                    items = teamMembers || [];
+                    contentType = "Team Member";
+                    labelField = "name";
                   }
 
                   if (items.length === 0) {
@@ -961,7 +993,7 @@ export default function DashboardTabs({
                                 {item[labelField]}
                               </td>
                               <td className="p-4 text-xs font-medium text-slate-600">
-                                {item.category || item.department || item.location || "General"}
+                                {item.category || item.department || item.location || item.role || "General"}
                               </td>
                               <td className="p-4">
                                 <span

@@ -135,3 +135,13 @@ CREATE TABLE IF NOT EXISTS consultation_requests (
 );
 
 CREATE INDEX IF NOT EXISTS consultation_requests_status_created_at ON consultation_requests(status, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS team_members (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  role TEXT NOT NULL,
+  image TEXT,
+  bio TEXT,
+  visibility TEXT NOT NULL DEFAULT 'Draft' CHECK (visibility IN ('Draft', 'Public')),
+  createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+);

@@ -17,7 +17,7 @@ export default function HospitalsPage() {
   const [selectedLoc, setSelectedLoc] = useState("All");
   const [dbHospitals, setDbHospitals] = useState<any[]>([]);
 
-  const locations = ["All", "Delhi", "Chennai", "Gurugram", "Bangalore"];
+  const locations = ["All", "India", "Thailand", "Nepal", "Singapore"];
 
   const defaultHospitals: HospitalItem[] = [
     {
@@ -37,20 +37,28 @@ export default function HospitalsPage() {
         "One of the largest JCI-accredited tertiary care networks specializing in proton-beam oncology, structural heart care, and robotics.",
     },
     {
-      id: "medanta-the-medicity",
-      name: "Medanta - The Medicity",
-      location: "Gurugram, India",
-      focus: "Integrated specialty centers and international patient support",
+      id: "bumrungrad-international",
+      name: "Bumrungrad International Hospital",
+      location: "Bangkok, Thailand",
+      focus: "Premium quaternary care and wellness services",
       description:
-        "Sprawling multi-specialty institute featuring dedicated care desks for cross-border medical visas, language translation, and accommodation.",
+        "One of the largest JCI-accredited clinical hubs in Southeast Asia, specializing in comprehensive health screenings, cardiology, and advanced oncology care.",
     },
     {
-      id: "manipal-hospitals",
-      name: "Manipal Hospitals",
-      location: "Bangalore, India",
-      focus: "Orthopedics, neurology, and surgical excellence",
+      id: "norvic-international",
+      name: "Norvic International Hospital",
+      location: "Kathmandu, Nepal",
+      focus: "Multi-specialty tertiary & emergency medical care",
       description:
-        "Highly regarded for neurosurgery, bone joint replacements, and comprehensive rehabilitation pathways for overseas patients.",
+        "Renowned facility in Kathmandu offering state-of-the-art diagnostic services, cardiology, and priority case evaluation coordination.",
+    },
+    {
+      id: "mount-elizabeth-orchard",
+      name: "Mount Elizabeth Hospital",
+      location: "Orchard, Singapore",
+      focus: "Advanced surgical procedures and oncology excellence",
+      description:
+        "Elite private healthcare institution famous for cardiovascular surgery, robotic-assisted operations, and high-success treatment pathways.",
     },
   ];
 
@@ -102,7 +110,7 @@ export default function HospitalsPage() {
             World-Class Hospital Networks
           </h1>
           <p className="text-base text-slate-600 mt-4 leading-relaxed">
-            We collaborate exclusively with leading accredited medical institutions across India. These hospitals feature modern diagnostic labs, ICU capabilities, and dedicated desks for international patient relations.
+            We collaborate exclusively with leading accredited medical institutions across India, Thailand, Nepal, and Singapore. These hospitals feature modern diagnostic labs, ICU capabilities, and dedicated desks for international patient relations.
           </p>
         </header>
 

@@ -10,6 +10,7 @@ import {
   hospitals,
   testimonials,
   faqs,
+  teamMembers,
 } from "@/db/schema";
 import { desc } from "drizzle-orm";
 import DashboardTabs from "./DashboardTabs";
@@ -37,6 +38,7 @@ export default async function AdminDashboardPage() {
   let hospitalsData: any[] = [];
   let testimonialsData: any[] = [];
   let faqsData: any[] = [];
+  let teamMembersData: any[] = [];
 
   try {
     const db = getDb();
@@ -66,6 +68,7 @@ export default async function AdminDashboardPage() {
     hospitalsData = await db.select().from(hospitals).orderBy(desc(hospitals.createdAt));
     testimonialsData = await db.select().from(testimonials).orderBy(desc(testimonials.createdAt));
     faqsData = await db.select().from(faqs).orderBy(desc(faqs.createdAt));
+    teamMembersData = await db.select().from(teamMembers).orderBy(desc(teamMembers.createdAt));
   } catch (error) {
     console.error("Dashboard database fetch error:", error);
   }
@@ -102,6 +105,7 @@ export default async function AdminDashboardPage() {
           hospitals={hospitalsData}
           testimonials={testimonialsData}
           faqs={faqsData}
+          teamMembers={teamMembersData}
         />
       </div>
     </div>

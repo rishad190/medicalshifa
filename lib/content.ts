@@ -2,9 +2,9 @@ export const company = {
   name: "Shifa Global Care Solution Limited",
   tagline: "Advancing Healthcare. Building Trust. Transforming Lives.",
   description:
-    "Shifa Global Care Solution Limited is a trusted medical tourism facilitator connecting international patients with leading hospitals and specialists in India.",
+    "Shifa Global Care Solution Limited is a trusted medical tourism facilitator connecting international patients with leading hospitals and specialists in India, Thailand, Nepal, and Singapore.",
   about:
-    "Since 2007, we have helped patients from Bangladesh and other countries access advanced, affordable, and life-saving treatment with confidence and peace of mind.",
+    "Since 2007, we have helped patients from Bangladesh and other countries access advanced, affordable, and life-saving treatment in India, Thailand, Nepal, and Singapore with confidence and peace of mind.",
   mission:
     "To provide seamless medical tourism services through professional excellence, personalized patient care, and strong partnerships with leading hospitals.",
   vision:

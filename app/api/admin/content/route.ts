@@ -10,6 +10,7 @@ import {
   hospitals,
   testimonials,
   faqs,
+  teamMembers,
 } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 
@@ -28,7 +29,7 @@ function slugify(text: string) {
 // GET handler: Fetch content lists (publicly readable or for portal viewing)
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
-  const type = url.searchParams.get("type"); // "Service" | "Blog Post" | "Partner" | "Doctor" | "Hospital" | "Testimonial" | "FAQ"
+  const type = url.searchParams.get("type"); // "Service" | "Blog Post" | "Partner" | "Doctor" | "Hospital" | "Testimonial" | "FAQ" | "Team Member"
 
   try {
     const db = getDb();
@@ -54,6 +55,9 @@ export async function GET(req: NextRequest) {
     } else if (type === "FAQ") {
       const results = await db.select().from(faqs).orderBy(desc(faqs.createdAt));
       return NextResponse.json(results);
+    } else if (type === "Team Member") {
+      const results = await db.select().from(teamMembers).orderBy(desc(teamMembers.createdAt));
+      return NextResponse.json(results);
     } else {
       // Fetch all contents for initial dashboard sync
       const s = await db.select().from(services);
@@ -63,6 +67,7 @@ export async function GET(req: NextRequest) {
       const h = await db.select().from(hospitals);
       const t = await db.select().from(testimonials);
       const f = await db.select().from(faqs);
+      const tm = await db.select().from(teamMembers);
 
       return NextResponse.json({
         services: s,
@@ -72,6 +77,7 @@ export async function GET(req: NextRequest) {
         hospitals: h,
         testimonials: t,
         faqs: f,
+        teamMembers: tm,
       });
     }
   } catch (err: any) {
@@ -289,6 +295,30 @@ export const POST = auth(async (req) => {
             question: data.title,
             answer: data.description || "",
             category: data.category || "General",
+            visibility,
+          },
+        });
+      return NextResponse.json({ success: true, id });
+    } else if (contentType === "Team Member") {
+      if (!data.title) return NextResponse.json({ error: "Name is required" }, { status: 400 });
+      const id = data.id || crypto.randomUUID();
+      await db
+        .insert(teamMembers)
+        .values({
+          id,
+          name: data.title,
+          role: data.category || "Staff",
+          bio: data.description || "",
+          image: data.image || "",
+          visibility,
+        })
+        .onConflictDoUpdate({
+          target: teamMembers.id,
+          set: {
+            name: data.title,
+            role: data.category || "Staff",
+            bio: data.description || "",
+            image: data.image || "",
             visibility,
           },
         });

@@ -65,36 +65,49 @@ export default function AboutPage() {
     },
   ];
 
-  const leaders = [
+  const defaultLeaders = [
     {
-      name: "Mr. Farhan Shafi",
+      name: "Rowson Ara Sumi",
       role: "CEO & Founder",
       image:
-        "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=80",
-      bio: "Farhan has over 18 years of cross-border medical tourism leadership, dedicating his career to making advanced care accessible and affordable.",
-    },
-    {
-      name: "Dr. Sarah Khalil",
-      role: "Chief Medical Adviser",
-      image:
         "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80",
-      bio: "Dr. Sarah Khalil oversees our clinical board reviews, ensuring that each patient's medical history is accurately evaluated and matched with the absolute best-fit specialists in India.",
+      bio: "Rowson Ara Sumi leads Shifa Global Care with a vision of bridging borders in healthcare. With years of experience, she ensures our international patients receive elite, compassionate, and seamless clinical care.",
     },
     {
-      name: "Ms. Jannat Ara",
-      role: "Head of Operations & Visa Liaison",
+      name: "Sami Ul Joha",
+      role: "Executive",
       image:
-        "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=400&q=80",
-      bio: "Jannat manages our travel logistics, medical visa fast-tracking coordination, and hotel/airport transfer managers globally.",
-    },
-    {
-      name: "Mr. Sandeep Verma",
-      role: "India Network Director",
-      image:
-        "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=400&q=80",
-      bio: "Based in New Delhi, Sandeep coordinates directly with Fortis, Apollo, Medanta, and other tertiary partner hospital desks to support priority booking and patient arrival reception.",
+        "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=80",
+      bio: "Sami Ul Joha manages executive operations, patient coordination channels, and global liaison programs, ensuring swift case processing and absolute coordination efficiency.",
     },
   ];
+
+  const [dbTeam, setDbTeam] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function loadTeam() {
+      try {
+        const res = await fetch("/api/admin/content?type=Team+Member");
+        if (res.ok) {
+          const data = (await res.json()) as any[];
+          const publicTeam = data.filter((m: any) => m.visibility === "Public");
+          setDbTeam(publicTeam);
+        }
+      } catch (e) {
+        console.error("Failed to load D1 team members", e);
+      }
+    }
+    loadTeam();
+  }, []);
+
+  const formattedDbTeam = dbTeam.map((m: any) => ({
+    name: m.name,
+    role: m.role || "Staff Member",
+    image: m.image || "",
+    bio: m.bio || "",
+  }));
+
+  const allLeaders = [...defaultLeaders, ...formattedDbTeam];
 
   useEffect(() => {
     const revealObserver = new IntersectionObserver(
@@ -227,7 +240,7 @@ export default function AboutPage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {leaders.map((leader, index) => (
+            {allLeaders.map((leader, index) => (
               <div
                 key={leader.name}
                 onClick={() => setSelectedLeader(selectedLeader === index ? null : index)}
@@ -237,13 +250,19 @@ export default function AboutPage() {
                 style={{ transitionDelay: `${index * 100}ms` }}
               >
                 <div className="relative aspect-square bg-slate-200 overflow-hidden">
-                  <Image
-                    src={leader.image}
-                    alt={leader.name}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
-                    sizes="(max-width: 640px) 100vw, 25vw"
-                  />
+                  {leader.image ? (
+                    <Image
+                      src={leader.image}
+                      alt={leader.name}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      sizes="(max-width: 640px) 100vw, 25vw"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-4xl font-bold bg-teal-50 text-teal-800">
+                      👤
+                    </div>
+                  )}
                 </div>
                 <div className="p-5">
                   <h3 className="font-bold text-slate-900 text-sm">{leader.name}</h3>

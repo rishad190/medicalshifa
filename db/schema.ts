@@ -151,3 +151,14 @@ export const consultationRequests = sqliteTable("consultation_requests", {
   userId: text("userId").references(() => users.id, { onDelete: "set null" }),
   createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
+
+// 13. Team Members
+export const teamMembers = sqliteTable("team_members", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  role: text("role").notNull(),
+  image: text("image"),
+  bio: text("bio"),
+  visibility: text("visibility", { enum: ["Draft", "Public"] }).default("Draft").notNull(),
+  createdAt: text("createdAt").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
