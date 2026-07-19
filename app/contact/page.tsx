@@ -49,8 +49,8 @@ export default function ContactPage() {
       country: "Bangladesh Liaison Office",
       city: "Dhaka",
       address: "Meghna Air Overseas, Shatabdi Centre, Room No-9/B (9th Flr), 292, Inner Circular Road, Fakirapool, Dhaka-1000.",
-      phone: "+880 1712 345678",
-      email: "dhaka@shifaglobal.care",
+      phone: "+8801999910930",
+      email: "asumi782@gmail.com",
     },
   ];
 
