@@ -145,3 +145,12 @@ CREATE TABLE IF NOT EXISTS team_members (
   visibility TEXT NOT NULL DEFAULT 'Draft' CHECK (visibility IN ('Draft', 'Public')),
   createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS gallery_images (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  slot TEXT NOT NULL,
+  image TEXT NOT NULL,
+  visibility TEXT NOT NULL DEFAULT 'Draft' CHECK (visibility IN ('Draft', 'Public')),
+  createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+);

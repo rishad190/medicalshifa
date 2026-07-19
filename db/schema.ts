@@ -162,3 +162,13 @@ export const teamMembers = sqliteTable("team_members", {
   visibility: text("visibility", { enum: ["Draft", "Public"] }).default("Draft").notNull(),
   createdAt: text("createdAt").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
+
+// 14. Gallery Images
+export const galleryImages = sqliteTable("gallery_images", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  slot: text("slot").notNull(), // "slot1" | "slot2" | "slot3" | "slot4"
+  image: text("image").notNull(), // base64
+  visibility: text("visibility", { enum: ["Draft", "Public"] }).default("Draft").notNull(),
+  createdAt: text("createdAt").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});

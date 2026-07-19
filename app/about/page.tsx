@@ -65,23 +65,6 @@ export default function AboutPage() {
     },
   ];
 
-  const defaultLeaders = [
-    {
-      name: "Rowson Ara Sumi",
-      role: "CEO & Founder",
-      image:
-        "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80",
-      bio: "Rowson Ara Sumi leads Shifa Global Care with a vision of bridging borders in healthcare. With years of experience, she ensures our international patients receive elite, compassionate, and seamless clinical care.",
-    },
-    {
-      name: "Sami Ul Joha",
-      role: "Executive",
-      image:
-        "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=80",
-      bio: "Sami Ul Joha manages executive operations, patient coordination channels, and global liaison programs, ensuring swift case processing and absolute coordination efficiency.",
-    },
-  ];
-
   const [dbTeam, setDbTeam] = useState<any[]>([]);
 
   useEffect(() => {
@@ -107,7 +90,7 @@ export default function AboutPage() {
     bio: m.bio || "",
   }));
 
-  const allLeaders = [...defaultLeaders, ...formattedDbTeam];
+  const allLeaders = formattedDbTeam;
 
   useEffect(() => {
     const revealObserver = new IntersectionObserver(
@@ -239,48 +222,54 @@ export default function AboutPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {allLeaders.map((leader, index) => (
-              <div
-                key={leader.name}
-                onClick={() => setSelectedLeader(selectedLeader === index ? null : index)}
-                className={`group cursor-pointer bg-slate-50 border rounded-3xl overflow-hidden transition-all duration-300 reveal ${
-                  selectedLeader === index ? "border-teal-600 ring-2 ring-teal-50 shadow-lg scale-102" : "border-slate-200 hover:border-slate-300 shadow-xs"
-                }`}
-                style={{ transitionDelay: `${index * 100}ms` }}
-              >
-                <div className="relative aspect-square bg-slate-200 overflow-hidden">
-                  {leader.image ? (
-                    <Image
-                      src={leader.image}
-                      alt={leader.name}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
-                      sizes="(max-width: 640px) 100vw, 25vw"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-4xl font-bold bg-teal-50 text-teal-800">
-                      👤
+          {allLeaders.length === 0 ? (
+            <div className="text-center py-10 bg-slate-50 rounded-3xl border border-slate-100 max-w-md mx-auto">
+              <p className="text-sm text-slate-500 font-medium font-display">Leadership team updates in progress.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+              {allLeaders.map((leader, index) => (
+                <div
+                  key={leader.name}
+                  onClick={() => setSelectedLeader(selectedLeader === index ? null : index)}
+                  className={`group cursor-pointer bg-slate-50 border rounded-3xl overflow-hidden transition-all duration-300 reveal ${
+                    selectedLeader === index ? "border-teal-600 ring-2 ring-teal-50 shadow-lg scale-102" : "border-slate-200 hover:border-slate-300 shadow-xs"
+                  }`}
+                  style={{ transitionDelay: `${index * 100}ms` }}
+                >
+                  <div className="relative aspect-square bg-slate-200 overflow-hidden">
+                    {leader.image ? (
+                      <Image
+                        src={leader.image}
+                        alt={leader.name}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        sizes="(max-width: 640px) 100vw, 25vw"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-4xl font-bold bg-teal-50 text-teal-800">
+                        👤
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-5">
+                    <h3 className="font-bold text-slate-900 text-sm">{leader.name}</h3>
+                    <p className="text-teal-700 text-2xs font-bold uppercase tracking-wider mt-1">{leader.role}</p>
+                    
+                    {/* Bio Reveal */}
+                    <div className={`transition-all duration-300 overflow-hidden ${selectedLeader === index ? "max-h-40 mt-3 opacity-100" : "max-h-0 opacity-0"}`}>
+                      <p className="text-4xs text-slate-500 leading-relaxed border-t border-slate-200 pt-3">
+                        {leader.bio}
+                      </p>
                     </div>
-                  )}
-                </div>
-                <div className="p-5">
-                  <h3 className="font-bold text-slate-900 text-sm">{leader.name}</h3>
-                  <p className="text-teal-700 text-2xs font-bold uppercase tracking-wider mt-1">{leader.role}</p>
-                  
-                  {/* Bio Reveal */}
-                  <div className={`transition-all duration-300 overflow-hidden ${selectedLeader === index ? "max-h-40 mt-3 opacity-100" : "max-h-0 opacity-0"}`}>
-                    <p className="text-4xs text-slate-500 leading-relaxed border-t border-slate-200 pt-3">
-                      {leader.bio}
-                    </p>
-                  </div>
-                  <div className="text-teal-700 text-4xs font-bold mt-4 flex items-center justify-end">
-                    {selectedLeader === index ? "Hide bio ▲" : "Show bio ▼"}
+                    <div className="text-teal-700 text-4xs font-bold mt-4 flex items-center justify-end">
+                      {selectedLeader === index ? "Hide bio ▲" : "Show bio ▼"}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

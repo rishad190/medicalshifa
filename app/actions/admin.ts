@@ -12,6 +12,7 @@ import {
   testimonials,
   faqs,
   teamMembers,
+  galleryImages,
 } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { auth } from "@/auth";
@@ -88,7 +89,8 @@ export async function deleteContent(
     | "Hospital"
     | "Testimonial"
     | "FAQ"
-    | "Team Member",
+    | "Team Member"
+    | "Gallery Image",
   id: string
 ) {
   await verifyAdminOrStaff();
@@ -112,6 +114,8 @@ export async function deleteContent(
       await db.delete(faqs).where(eq(faqs.id, id));
     } else if (contentType === "Team Member") {
       await db.delete(teamMembers).where(eq(teamMembers.id, id));
+    } else if (contentType === "Gallery Image") {
+      await db.delete(galleryImages).where(eq(galleryImages.id, id));
     } else {
       return { success: false, error: "Invalid Content Type" };
     }

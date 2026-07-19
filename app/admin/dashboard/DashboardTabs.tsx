@@ -21,6 +21,7 @@ type DashboardTabsProps = {
   testimonials: any[];
   faqs: any[];
   teamMembers?: any[];
+  galleryImages?: any[];
 };
 
 export default function DashboardTabs({
@@ -34,6 +35,7 @@ export default function DashboardTabs({
   testimonials,
   faqs,
   teamMembers = [],
+  galleryImages = [],
 }: DashboardTabsProps) {
   const [activeTab, setActiveTab] = useState("Consultations");
   const [isAdding, setIsAdding] = useState(false);
@@ -43,7 +45,7 @@ export default function DashboardTabs({
 
   // UPLOAD / EDIT FORM STATES
   const [formContentType, setFormContentType] = useState<
-    "Service" | "Doctor" | "Hospital" | "Blog Post" | "Testimonial" | "FAQ" | "Partner" | "Team Member"
+    "Service" | "Doctor" | "Hospital" | "Blog Post" | "Testimonial" | "FAQ" | "Partner" | "Team Member" | "Gallery Image"
   >("Service");
   const [formEditId, setFormEditId] = useState<string | null>(null);
   const [formTitle, setFormTitle] = useState("");
@@ -145,6 +147,9 @@ export default function DashboardTabs({
     } else if (type === "Team Member") {
       setFormCategory(item.role || "Staff");
       setFormExtra({});
+    } else if (type === "Gallery Image") {
+      setFormCategory("general");
+      setFormExtra({});
     }
 
     setIsAdding(true);
@@ -213,6 +218,9 @@ export default function DashboardTabs({
         payload.title = formTitle;
         payload.category = formCategory;
         payload.description = formDescription;
+      } else if (formContentType === "Gallery Image") {
+        payload.title = formTitle;
+        payload.category = "general";
       }
 
       const res = await fetch("/api/admin/content", {
@@ -297,7 +305,8 @@ export default function DashboardTabs({
     "Blog Posts",
     "Testimonials",
     "FAQs",
-    "Team"
+    "Team",
+    "Gallery"
   ];
 
   return (
@@ -570,6 +579,8 @@ export default function DashboardTabs({
                   </div>
                 )}
 
+
+
                 {formContentType === "Blog Post" && (
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -608,7 +619,7 @@ export default function DashboardTabs({
                 )}
 
                 {/* Description / Content Body */}
-                {formContentType !== "Partner" && (
+                {!["Partner", "Gallery Image"].includes(formContentType) && (
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
                       {formContentType === "FAQ"
@@ -876,8 +887,8 @@ export default function DashboardTabs({
               </div>
             )}
 
-            {/* Content Tabs (Services, Doctors, Hospitals, Blog Posts, Testimonials, FAQs, Team) */}
-            {["Services", "Doctors", "Hospitals", "Blog Posts", "Testimonials", "FAQs", "Team"].includes(
+            {/* Content Tabs (Services, Doctors, Hospitals, Blog Posts, Testimonials, FAQs, Team, Gallery) */}
+            {["Services", "Doctors", "Hospitals", "Blog Posts", "Testimonials", "FAQs", "Team", "Gallery"].includes(
               activeTab
             ) && (
               <div className="space-y-4">
@@ -892,7 +903,8 @@ export default function DashboardTabs({
                         "Blog Posts": "Blog Post",
                         "Testimonials": "Testimonial",
                         "FAQs": "FAQ",
-                        "Team": "Team Member"
+                        "Team": "Team Member",
+                        "Gallery": "Gallery Image"
                       };
                       const type = typeMap[activeTab] || "Service";
                       setFormContentType(type);
@@ -917,6 +929,9 @@ export default function DashboardTabs({
                       } else if (type === "Team Member") {
                         setFormCategory("Staff");
                         setFormExtra({});
+                      } else if (type === "Gallery Image") {
+                        setFormCategory("general");
+                        setFormExtra({});
                       } else {
                         setFormCategory("");
                         setFormExtra({});
@@ -925,7 +940,7 @@ export default function DashboardTabs({
                     }}
                     className="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-xs transition cursor-pointer"
                   >
-                    Add New {activeTab === "Team" ? "Team Member" : activeTab.slice(0, -1)}
+                    Add New {activeTab === "Gallery" ? "Gallery Image" : activeTab === "Team" ? "Team Member" : activeTab.slice(0, -1)}
                   </button>
                 </div>
 
@@ -961,6 +976,10 @@ export default function DashboardTabs({
                     items = teamMembers || [];
                     contentType = "Team Member";
                     labelField = "name";
+                  } else if (activeTab === "Gallery") {
+                    items = galleryImages || [];
+                    contentType = "Gallery Image";
+                    labelField = "title";
                   }
 
                   if (items.length === 0) {

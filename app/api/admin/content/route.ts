@@ -11,6 +11,7 @@ import {
   testimonials,
   faqs,
   teamMembers,
+  galleryImages,
 } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 
@@ -29,7 +30,7 @@ function slugify(text: string) {
 // GET handler: Fetch content lists (publicly readable or for portal viewing)
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
-  const type = url.searchParams.get("type"); // "Service" | "Blog Post" | "Partner" | "Doctor" | "Hospital" | "Testimonial" | "FAQ" | "Team Member"
+  const type = url.searchParams.get("type"); // "Service" | "Blog Post" | "Partner" | "Doctor" | "Hospital" | "Testimonial" | "FAQ" | "Team Member" | "Gallery Image"
 
   try {
     const db = getDb();
@@ -58,6 +59,9 @@ export async function GET(req: NextRequest) {
     } else if (type === "Team Member") {
       const results = await db.select().from(teamMembers).orderBy(desc(teamMembers.createdAt));
       return NextResponse.json(results);
+    } else if (type === "Gallery Image") {
+      const results = await db.select().from(galleryImages).orderBy(desc(galleryImages.createdAt));
+      return NextResponse.json(results);
     } else {
       // Fetch all contents for initial dashboard sync
       const s = await db.select().from(services);
@@ -68,6 +72,7 @@ export async function GET(req: NextRequest) {
       const t = await db.select().from(testimonials);
       const f = await db.select().from(faqs);
       const tm = await db.select().from(teamMembers);
+      const gi = await db.select().from(galleryImages);
 
       return NextResponse.json({
         services: s,
@@ -78,6 +83,7 @@ export async function GET(req: NextRequest) {
         testimonials: t,
         faqs: f,
         teamMembers: tm,
+        galleryImages: gi,
       });
     }
   } catch (err: any) {
@@ -319,6 +325,29 @@ export const POST = auth(async (req) => {
             role: data.category || "Staff",
             bio: data.description || "",
             image: data.image || "",
+            visibility,
+          },
+        });
+      return NextResponse.json({ success: true, id });
+    } else if (contentType === "Gallery Image") {
+      if (!data.title) return NextResponse.json({ error: "Title is required" }, { status: 400 });
+      if (!data.image) return NextResponse.json({ error: "Image is required" }, { status: 400 });
+      const id = data.id || crypto.randomUUID();
+      await db
+        .insert(galleryImages)
+        .values({
+          id,
+          title: data.title,
+          slot: data.category || "slot1",
+          image: data.image,
+          visibility,
+        })
+        .onConflictDoUpdate({
+          target: galleryImages.id,
+          set: {
+            title: data.title,
+            slot: data.category || "slot1",
+            image: data.image,
             visibility,
           },
         });
