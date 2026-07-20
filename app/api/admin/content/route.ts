@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { ADMIN_ROLE, STAFF_ROLE } from "@/auth";
 import { getDb } from "@/lib/db";
 import {
+  users,
   services,
   blogPosts,
   partners,
@@ -101,14 +102,34 @@ export const POST = auth(async (req) => {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const role = (req.auth.user as any)?.role ?? "PATIENT";
+  let role = (req.auth.user as any)?.role ?? "PATIENT";
+
+  const db = getDb();
+  if (!db) return NextResponse.json({ error: "Database offline" }, { status: 503 });
+
+  if (role !== ADMIN_ROLE && role !== STAFF_ROLE && req.auth.user?.email) {
+    try {
+      const userRec = await db
+        .select({ role: users.role })
+        .from(users)
+        .where(eq(users.email, req.auth.user.email.toLowerCase()))
+        .limit(1);
+      if (userRec.length > 0) {
+        role = userRec[0].role;
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+
   if (role !== ADMIN_ROLE && role !== STAFF_ROLE) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Forbidden: Admin access required." },
+      { status: 403 }
+    );
   }
 
   try {
-    const db = getDb();
-    if (!db) return NextResponse.json({ error: "Database offline" }, { status: 503 });
     const body = (await req.json()) as any;
     const { contentType, ...data } = body;
 
