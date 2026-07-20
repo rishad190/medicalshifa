@@ -2,7 +2,12 @@ import { drizzle } from "drizzle-orm/d1";
 import * as schema from "../db/schema";
 
 export function getDb() {
-  let d1 = (process.env as any).DB ?? (globalThis as any).DB ?? null;
+  let d1 =
+    (process.env as any).DB ??
+    (globalThis as any).DB ??
+    (globalThis as any).__env__?.DB ??
+    (globalThis as any).__env?.DB ??
+    null;
 
   if (!d1) {
     try {
