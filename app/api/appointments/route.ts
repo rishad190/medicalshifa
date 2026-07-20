@@ -27,6 +27,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const db = getDb();
+    if (!db) return NextResponse.json({ error: "Database offline" }, { status: 503 });
 
     // Link to registered patient if authenticated
     const session = await auth();

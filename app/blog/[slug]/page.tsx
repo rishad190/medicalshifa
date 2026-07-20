@@ -74,14 +74,16 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
 
   try {
     const db = getDb();
-    const results = await db
-      .select()
-      .from(blogPosts)
-      .where(eq(blogPosts.slug, slug))
-      .limit(1);
+    if (db) {
+      const results = await db
+        .select()
+        .from(blogPosts)
+        .where(eq(blogPosts.slug, slug))
+        .limit(1);
 
-    if (results.length > 0) {
-      post = results[0];
+      if (results.length > 0) {
+        post = results[0];
+      }
     }
   } catch (error) {
     console.error("Failed to query D1 for blog details:", error);

@@ -30,7 +30,9 @@ export default async function Home() {
   let dbGallery: any[] = [];
   try {
     const db = getDb();
-    dbGallery = await db.select().from(galleryImages).orderBy(desc(galleryImages.createdAt));
+    if (db) {
+      dbGallery = await db.select().from(galleryImages).orderBy(desc(galleryImages.createdAt));
+    }
   } catch (err) {
     console.error("Failed to load gallery images on homepage:", err);
   }

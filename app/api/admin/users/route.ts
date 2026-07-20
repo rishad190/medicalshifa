@@ -20,6 +20,7 @@ export const GET = auth(async (req) => {
 
   try {
     const db = getDb();
+    if (!db) return NextResponse.json([]);
     const result = await db
       .select({
         id: users.id,
@@ -54,6 +55,7 @@ export const POST = auth(async (req) => {
 
   try {
     const db = getDb();
+    if (!db) return NextResponse.json({ error: "Database offline" }, { status: 503 });
     const body = (await req.json()) as any;
     const { userId, newRole } = body;
 

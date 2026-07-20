@@ -44,11 +44,11 @@ export default async function AdminDashboardPage() {
 
   try {
     const db = getDb();
-
-    consultationsData = await db
-      .select()
-      .from(consultationRequests)
-      .orderBy(desc(consultationRequests.createdAt));
+    if (db) {
+      consultationsData = await db
+        .select()
+        .from(consultationRequests)
+        .orderBy(desc(consultationRequests.createdAt));
 
     // Only administrators can view users list
     if (role === "ADMIN") {
@@ -72,6 +72,7 @@ export default async function AdminDashboardPage() {
     faqsData = await db.select().from(faqs).orderBy(desc(faqs.createdAt));
     teamMembersData = await db.select().from(teamMembers).orderBy(desc(teamMembers.createdAt));
     galleryImagesData = await db.select().from(galleryImages).orderBy(desc(galleryImages.createdAt));
+    }
   } catch (error) {
     console.error("Dashboard database fetch error:", error);
   }

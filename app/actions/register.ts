@@ -28,6 +28,7 @@ export async function registerUser(prevState: any, formData: FormData) {
 
   try {
     const db = getDb();
+    if (!db) return { success: false, error: "Database connection unavailable" };
 
     // Check if user already exists
     const existingUsers = await db

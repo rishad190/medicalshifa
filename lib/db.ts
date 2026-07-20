@@ -15,10 +15,11 @@ export function getDb() {
   }
 
   if (!d1) {
-    throw new Error(
+    console.warn(
       "D1 database connection unavailable. Ensure that the 'DB' binding is configured in wrangler.toml and available in the current environment context."
     );
+    return null;
   }
   return drizzle(d1, { schema });
 }
-export type DbClient = ReturnType<typeof getDb>;
+export type DbClient = NonNullable<ReturnType<typeof getDb>>;

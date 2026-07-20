@@ -34,6 +34,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const db = getDb();
+    if (!db) return NextResponse.json([]);
 
     if (type === "Service") {
       const results = await db.select().from(services).orderBy(desc(services.createdAt));
@@ -107,6 +108,7 @@ export const POST = auth(async (req) => {
 
   try {
     const db = getDb();
+    if (!db) return NextResponse.json({ error: "Database offline" }, { status: 503 });
     const body = (await req.json()) as any;
     const { contentType, ...data } = body;
 

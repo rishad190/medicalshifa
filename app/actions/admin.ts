@@ -39,6 +39,7 @@ export async function updateConsultationStatus(
 
   try {
     const db = getDb();
+    if (!db) return { success: false, error: "Database offline" };
     await db
       .update(consultationRequests)
       .set({ status })
@@ -70,6 +71,7 @@ export async function updateUserRole(
 
   try {
     const db = getDb();
+    if (!db) return { success: false, error: "Database offline" };
     await db.update(users).set({ role }).where(eq(users.id, userId));
 
     revalidatePath("/admin/dashboard");
@@ -97,6 +99,7 @@ export async function deleteContent(
 
   try {
     const db = getDb();
+    if (!db) return { success: false, error: "Database offline" };
 
     if (contentType === "Service") {
       await db.delete(services).where(eq(services.id, id));

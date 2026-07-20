@@ -43,6 +43,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth(() => {
 
           try {
             const db = getDb();
+            if (!db) return null;
             const results = await db
               .select()
               .from(users)

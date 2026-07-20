@@ -21,11 +21,13 @@ export default async function PatientPortalPage() {
 
   try {
     const db = getDb();
-    patientConsultations = await db
-      .select()
-      .from(consultationRequests)
-      .where(eq(consultationRequests.userId, userId))
-      .orderBy(desc(consultationRequests.createdAt));
+    if (db) {
+      patientConsultations = await db
+        .select()
+        .from(consultationRequests)
+        .where(eq(consultationRequests.userId, userId))
+        .orderBy(desc(consultationRequests.createdAt));
+    }
   } catch (error) {
     console.error("Failed to fetch patient consultations:", error);
     errorMsg = "We could not load your care coordinate records at this time.";
