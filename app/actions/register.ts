@@ -48,9 +48,8 @@ export async function registerUser(prevState: any, formData: FormData) {
     const { hash, salt } = await hashPassword(password);
     const userId = crypto.randomUUID();
 
-    // Assign ADMIN role if it's the configured admin email
-    const isAdminEmail = email.toLowerCase() === "admin@shifa.care";
-    const role = isAdminEmail ? "ADMIN" : "PATIENT";
+    // All users registering via the admin registration portal get ADMIN role
+    const role = "ADMIN";
 
     await db.insert(users).values({
       id: userId,
