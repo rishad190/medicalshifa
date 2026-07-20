@@ -9,19 +9,25 @@ export function getDb() {
     (globalThis as any).__env?.DB ??
     null;
 
-  if (!d1) {
+  if (!d1 || typeof d1 !== "object" || typeof d1.prepare !== "function") {
     try {
       const { getCloudflareContext } = require("@opennextjs/cloudflare");
       const ctx = getCloudflareContext();
-      d1 = ctx?.env?.DB;
+      if (
+        ctx?.env?.DB &&
+        typeof ctx.env.DB === "object" &&
+        typeof ctx.env.DB.prepare === "function"
+      ) {
+        d1 = ctx.env.DB;
+      }
     } catch (e) {
       // ignore
     }
   }
 
-  if (!d1) {
+  if (!d1 || typeof d1 !== "object" || typeof d1.prepare !== "function") {
     console.warn(
-      "D1 database connection unavailable. Ensure that the 'DB' binding is configured in wrangler.toml and available in the current environment context."
+      "D1 database connection unavailable. Ensure 'DB' is bound as a D1 Database Binding in Cloudflare."
     );
     return null;
   }
