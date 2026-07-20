@@ -97,22 +97,23 @@ export async function GET(req: NextRequest) {
 }
 
 // POST handler: Create / Update content (restricted to Authenticated Admins/Staff)
-export const POST = auth(async (req) => {
-  if (!req.auth) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export async function POST(req: NextRequest) {
+  const session = await auth();
+  if (!session || !session.user) {
+    return NextResponse.json({ error: "Unauthorized: Please log in." }, { status: 401 });
   }
 
-  let role = (req.auth.user as any)?.role ?? "PATIENT";
+  let role = (session.user as any)?.role ?? "PATIENT";
 
   const db = getDb();
   if (!db) return NextResponse.json({ error: "Database offline" }, { status: 503 });
 
-  if (role !== ADMIN_ROLE && role !== STAFF_ROLE && req.auth.user?.email) {
+  if (role !== ADMIN_ROLE && role !== STAFF_ROLE && session.user?.email) {
     try {
       const userRec = await db
         .select({ role: users.role })
         .from(users)
-        .where(eq(users.email, req.auth.user.email.toLowerCase()))
+        .where(eq(users.email, session.user.email.toLowerCase()))
         .limit(1);
       if (userRec.length > 0) {
         role = userRec[0].role;
@@ -174,8 +175,8 @@ export const POST = auth(async (req) => {
       if (!data.title) return NextResponse.json({ error: "Title is required" }, { status: 400 });
       const slug = data.slug || slugify(data.title);
       const excerpt = data.description ? data.description.substring(0, 150) + "..." : "";
-      const author = req.auth.user?.name || "Dr. Sarah Khalil";
-      const authorImage = req.auth.user?.image || "";
+      const author = session.user?.name || "Dr. Sarah Khalil";
+      const authorImage = session.user?.image || "";
 
       await db
         .insert(blogPosts)
@@ -388,4 +389,4 @@ export const POST = auth(async (req) => {
       { status: 500 }
     );
   }
-});
+}

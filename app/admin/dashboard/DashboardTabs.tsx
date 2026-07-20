@@ -219,8 +219,11 @@ export default function DashboardTabs({
         payload.category = formCategory;
         payload.description = formDescription;
       } else if (formContentType === "Gallery Image") {
-        payload.title = formTitle;
+        payload.title = formTitle || "Medical Care Gallery";
         payload.category = "general";
+        if (!payload.image) {
+          payload.image = "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&q=80&w=1200";
+        }
       }
 
       const res = await fetch("/api/admin/content", {
@@ -376,6 +379,12 @@ export default function DashboardTabs({
                   Compile and register updates directly into the production Cloudflare D1 index.
                 </p>
               </div>
+
+              {publishError && (
+                <div className="w-full bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl text-xs font-semibold flex items-center gap-3">
+                  <span>⚠️ {publishError}</span>
+                </div>
+              )}
               
               <div className="flex items-center gap-3">
                 <button
