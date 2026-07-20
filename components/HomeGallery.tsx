@@ -27,7 +27,8 @@ export default function HomeGallery({ images = [] }: HomeGalleryProps) {
       try {
         const res = await fetch("/api/admin/content?type=Gallery+Image");
         if (res.ok) {
-          const data = await res.json();
+          const text = await res.text();
+          const data = text ? JSON.parse(text) : [];
           if (Array.isArray(data) && data.length > 0) {
             setGalleryData(data);
           }

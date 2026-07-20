@@ -66,9 +66,12 @@ export default function FaqPage() {
       try {
         const res = await fetch("/api/admin/content?type=FAQ");
         if (res.ok) {
-          const data = (await res.json()) as any[];
-          const publicFaqs = data.filter((f: any) => f.visibility === "Public");
-          setDbFaqs(publicFaqs);
+          const text = await res.text();
+          const data = text ? JSON.parse(text) : [];
+          if (Array.isArray(data)) {
+            const publicFaqs = data.filter((f: any) => f.visibility === "Public");
+            setDbFaqs(publicFaqs);
+          }
         }
       } catch (e) {
         console.error("Failed to load D1 FAQs", e);

@@ -113,9 +113,12 @@ export default function ServicesPage() {
       try {
         const res = await fetch("/api/admin/content?type=Service");
         if (res.ok) {
-          const data = (await res.json()) as any[];
-          const publicServices = data.filter((s: any) => s.visibility === "Public");
-          setDbServices(publicServices);
+          const text = await res.text();
+          const data = text ? JSON.parse(text) : [];
+          if (Array.isArray(data)) {
+            const publicServices = data.filter((s: any) => s.visibility === "Public");
+            setDbServices(publicServices);
+          }
         }
       } catch (e) {
         console.error("Failed to fetch D1 services", e);

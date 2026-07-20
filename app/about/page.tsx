@@ -72,9 +72,12 @@ export default function AboutPage() {
       try {
         const res = await fetch("/api/admin/content?type=Team+Member");
         if (res.ok) {
-          const data = (await res.json()) as any[];
-          const publicTeam = data.filter((m: any) => m.visibility === "Public");
-          setDbTeam(publicTeam);
+          const text = await res.text();
+          const data = text ? JSON.parse(text) : [];
+          if (Array.isArray(data)) {
+            const publicTeam = data.filter((m: any) => m.visibility === "Public");
+            setDbTeam(publicTeam);
+          }
         }
       } catch (e) {
         console.error("Failed to load D1 team members", e);

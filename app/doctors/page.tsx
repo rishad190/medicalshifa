@@ -64,9 +64,12 @@ export default function DoctorsPage() {
       try {
         const res = await fetch("/api/admin/content?type=Doctor");
         if (res.ok) {
-          const data = (await res.json()) as any[];
-          const publicDoctors = data.filter((d: any) => d.visibility === "Public");
-          setDbDoctors(publicDoctors);
+          const text = await res.text();
+          const data = text ? JSON.parse(text) : [];
+          if (Array.isArray(data)) {
+            const publicDoctors = data.filter((d: any) => d.visibility === "Public");
+            setDbDoctors(publicDoctors);
+          }
         }
       } catch (e) {
         console.error("Failed to load D1 doctors", e);

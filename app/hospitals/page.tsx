@@ -67,9 +67,12 @@ export default function HospitalsPage() {
       try {
         const res = await fetch("/api/admin/content?type=Hospital");
         if (res.ok) {
-          const data = (await res.json()) as any[];
-          const publicHospitals = data.filter((h: any) => h.visibility === "Public");
-          setDbHospitals(publicHospitals);
+          const text = await res.text();
+          const data = text ? JSON.parse(text) : [];
+          if (Array.isArray(data)) {
+            const publicHospitals = data.filter((h: any) => h.visibility === "Public");
+            setDbHospitals(publicHospitals);
+          }
         }
       } catch (e) {
         console.error("Failed to load D1 hospitals", e);
