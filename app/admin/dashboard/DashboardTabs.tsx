@@ -232,8 +232,15 @@ export default function DashboardTabs({
       });
 
       if (!res.ok) {
-        const data = (await res.json()) as any;
-        throw new Error(data.error || "Failed to publish content");
+        const text = await res.text();
+        let errMsg = "Failed to publish content";
+        try {
+          const data = text ? JSON.parse(text) : {};
+          if (data?.error) errMsg = data.error;
+        } catch (_) {
+          if (text) errMsg = text;
+        }
+        throw new Error(errMsg);
       }
 
       setPublishStatus("published");

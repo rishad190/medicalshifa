@@ -1,6 +1,6 @@
 /**
- * Secure password hashing utility using standard Web Crypto API (PBKDF2-HMAC-SHA256).
- * Compatible with Cloudflare Workers (Edge runtime) and modern Node.js.
+ * Secure password hashing utility using standard Web Crypto API (SHA-256 with Salt).
+ * Compatible with Cloudflare Workers (Edge runtime) and Node.js environments.
  */
 
 export async function hashPassword(
@@ -8,47 +8,19 @@ export async function hashPassword(
   salt?: string
 ): Promise<{ hash: string; salt: string }> {
   const encoder = new TextEncoder();
-  const passwordBuffer = encoder.encode(password);
 
-  let saltBuffer: Uint8Array;
-  let saltStr: string;
-
-  if (salt) {
-    saltStr = salt;
-    const matches = salt.match(/.{1,2}/g);
-    saltBuffer = new Uint8Array(
-      matches ? matches.map((byte) => parseInt(byte, 16)) : []
-    );
-  } else {
-    saltBuffer = new Uint8Array(16);
+  let saltStr = salt;
+  if (!saltStr) {
+    const saltBuffer = new Uint8Array(16);
     crypto.getRandomValues(saltBuffer);
     saltStr = Array.from(saltBuffer)
       .map((b) => b.toString(16).padStart(2, "0"))
       .join("");
   }
 
-  // Import password as raw key
-  const baseKey = await crypto.subtle.importKey(
-    "raw",
-    passwordBuffer,
-    { name: "PBKDF2" },
-    false,
-    ["deriveBits"]
-  );
-
-  // Derive 256 bits (32 bytes) of key material
-  const derivedBits = await crypto.subtle.deriveBits(
-    {
-      name: "PBKDF2",
-      salt: saltBuffer as any,
-      iterations: 100000,
-      hash: "SHA-256",
-    },
-    baseKey,
-    256
-  );
-
-  const hashStr = Array.from(new Uint8Array(derivedBits))
+  const data = encoder.encode(`${password}:${saltStr}`);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashStr = Array.from(new Uint8Array(hashBuffer))
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
 
