@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 type GalleryItem = {
   id: string;
@@ -11,17 +11,70 @@ type GalleryItem = {
 };
 
 type HomeGalleryProps = {
-  images: GalleryItem[];
+  images?: GalleryItem[];
 };
 
-export default function HomeGallery({ images }: HomeGalleryProps) {
+export default function HomeGallery({ images = [] }: HomeGalleryProps) {
+  const [galleryData, setGalleryData] = useState<GalleryItem[]>(images);
   const [currentPage, setCurrentPage] = useState(1);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const PAGE_SIZE = 12;
 
+  // Fetch gallery images asynchronously on client mount
+  useEffect(() => {
+    async function fetchGallery() {
+      try {
+        const res = await fetch("/api/admin/content?type=Gallery+Image");
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            setGalleryData(data);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch gallery images dynamically:", err);
+      }
+    }
+    fetchGallery();
+  }, []);
+
   // Filter public images
-  const publicImages = images.filter((img) => img.visibility === "Public");
+  const dbPublicImages = galleryData.filter((img) => img.visibility === "Public");
+
+  // Fallback to high-quality default images if database is empty
+  const publicImages = dbPublicImages.length > 0
+    ? dbPublicImages
+    : [
+        {
+          id: "default-1",
+          title: "World-Class Lobby Reception",
+          image: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=600&q=80",
+          slot: "slot1",
+          visibility: "Public"
+        },
+        {
+          id: "default-2",
+          title: "Specialist Review Desk",
+          image: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=600&q=80",
+          slot: "slot2",
+          visibility: "Public"
+        },
+        {
+          id: "default-3",
+          title: "Luxury Patient Suite",
+          image: "https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?auto=format&fit=crop&w=600&q=80",
+          slot: "slot3",
+          visibility: "Public"
+        },
+        {
+          id: "default-4",
+          title: "Airport Case Coordination",
+          image: "https://images.unsplash.com/photo-1542296332-2e4473fac563?auto=format&fit=crop&w=800&q=80",
+          slot: "slot4",
+          visibility: "Public"
+        }
+      ];
 
   // Calculate pagination variables
   const totalPages = Math.ceil(publicImages.length / PAGE_SIZE);
@@ -74,7 +127,6 @@ export default function HomeGallery({ images }: HomeGalleryProps) {
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {paginatedImages.map((imgItem) => {
-              // Map the index in paginated array to the index in the full publicImages array for correct lightbox slideshow behavior
               const fullIndex = publicImages.findIndex((item) => item.id === imgItem.id);
               return (
                 <div

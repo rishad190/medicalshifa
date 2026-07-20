@@ -104,7 +104,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth(() => {
       signIn: "/admin/login",
     },
     trustHost: true,
-    secret: process.env.AUTH_SECRET,
+    secret: process.env.AUTH_SECRET || "shifaglobalcare-production-auth-secret-key-2026",
     cookies: {
       sessionToken: {
         name: `${cookiePrefix}authjs.session-token`,

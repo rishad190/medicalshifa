@@ -1,8 +1,5 @@
 import Link from "next/link";
 import { company, journeySteps, services, specialties, stats, testimonials } from "@/lib/content";
-import { getDb } from "@/lib/db";
-import { galleryImages } from "@/db/schema";
-import { desc } from "drizzle-orm";
 import HomeGallery from "@/components/HomeGallery";
 
 export const runtime = "edge";
@@ -27,15 +24,6 @@ const benefits = [
 ];
 
 export default async function Home() {
-  let dbGallery: any[] = [];
-  try {
-    const db = getDb();
-    if (db) {
-      dbGallery = await db.select().from(galleryImages).orderBy(desc(galleryImages.createdAt));
-    }
-  } catch (err) {
-    console.error("Failed to load gallery images on homepage:", err);
-  }
 
 
 
@@ -209,7 +197,7 @@ export default async function Home() {
       </section>
 
       {/* Modern Image Gallery Section (Visual Insights) */}
-      <HomeGallery images={dbGallery} />
+      <HomeGallery />
 
       {/* Patient Voices / Testimonials */}
       <section className="bg-slate-950 py-20 text-white">
