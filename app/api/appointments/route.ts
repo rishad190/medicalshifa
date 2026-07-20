@@ -3,7 +3,7 @@ import { getDb } from "@/lib/db";
 import { consultationRequests } from "@/db/schema";
 import { auth } from "@/auth";
 
-export const runtime = "edge";
+
 
 type ConsultationInput = {
   name?: string;

@@ -5,7 +5,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 
-export const runtime = "edge";
 export const revalidate = 60; // Cache on edge for 1 minute
 
 const defaultPosts = [

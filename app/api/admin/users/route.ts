@@ -5,7 +5,7 @@ import { getDb } from "@/lib/db";
 import { users } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 
-export const runtime = "edge";
+
 
 // GET: Fetch all users (ADMIN or STAFF only)
 export const GET = auth(async (req) => {

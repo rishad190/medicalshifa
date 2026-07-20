@@ -15,7 +15,7 @@ import {
 } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 
-export const runtime = "edge";
+
 
 function slugify(text: string) {
   return text

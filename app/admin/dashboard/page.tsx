@@ -16,7 +16,6 @@ import {
 import { desc } from "drizzle-orm";
 import DashboardTabs from "./DashboardTabs";
 
-export const runtime = "edge";
 export const revalidate = 0; // Disable static caching for dashboard
 
 export default async function AdminDashboardPage() {

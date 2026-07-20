@@ -5,7 +5,6 @@ import { consultationRequests } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 import Link from "next/link";
 
-export const runtime = "edge";
 export const revalidate = 0; // Fresh updates for patient timeline
 
 export default async function PatientPortalPage() {

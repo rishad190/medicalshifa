@@ -2,7 +2,6 @@ import Link from "next/link";
 import { company, journeySteps, services, specialties, stats, testimonials } from "@/lib/content";
 import HomeGallery from "@/components/HomeGallery";
 
-export const runtime = "edge";
 export const revalidate = 0; // Keep dynamic to show uploaded images instantly
 
 const benefits = [
